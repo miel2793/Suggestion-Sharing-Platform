@@ -53,13 +53,13 @@ class ChoiceScreen extends StatelessWidget {
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.login),
                 label: const Text("Login"),
-                style: OutlinedButton.styleFrom(
+                style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) =>  LoginScreen()),
+                    MaterialPageRoute(builder: (_) => LoginScreen()),
                   );
                 },
               ),
