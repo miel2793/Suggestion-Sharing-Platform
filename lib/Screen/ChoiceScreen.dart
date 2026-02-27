@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'LoginScreen.dart';
-import 'ExploreScreen.dart';
 
+import 'Explore and account/ExploreScreen.dart';
+import 'log and reg/LoginScreen.dart';
 class ChoiceScreen extends StatelessWidget {
   const ChoiceScreen({super.key});
 
@@ -17,7 +17,8 @@ class ChoiceScreen extends StatelessWidget {
           children: [
 
             const Text(
-              "Welcome to Suggestion Hub",
+              "Welcome to \n"
+                  "Suggestion Sharing Platform",
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
@@ -53,13 +54,13 @@ class ChoiceScreen extends StatelessWidget {
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.login),
                 label: const Text("Login"),
-                style: ElevatedButton.styleFrom(
+                style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => LoginScreen()),
+                    MaterialPageRoute(builder: (_) =>  LoginScreen()),
                   );
                 },
               ),

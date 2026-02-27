@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class Signup extends StatelessWidget {
-  Signup({super.key});
+class SignupScreen extends StatelessWidget {
+  SignupScreen({super.key});
 
   final _formKey = GlobalKey<FormState>();
 
@@ -12,8 +12,6 @@ class Signup extends StatelessWidget {
   final TextEditingController section = TextEditingController();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
-  final TextEditingController confirm_password = TextEditingController();
-
 
   Widget _inputBox({
     required TextEditingController controller,
@@ -47,7 +45,7 @@ class Signup extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue[50],
-     /* appBar: AppBar(
+      /* appBar: AppBar(
         title: const Text("Login"),
         backgroundColor: Colors.cyan[100],
       ),*/
@@ -143,18 +141,6 @@ class Signup extends StatelessWidget {
                       if (v.length < 6) {
                         return "Minimum 6 characters";
                       }
-                      return null;
-                    },
-                  ),
-                 const SizedBox(height: 15),
-
-                  _inputBox(
-                    controller: confirm_password,
-                    hint: "Confirm Password",
-                    obscure: true,
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return "Confirm password is required";
-                      if (v != password.text) return "Passwords do not match";
                       return null;
                     },
                   ),
