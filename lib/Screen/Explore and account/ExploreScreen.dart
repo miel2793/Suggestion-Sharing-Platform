@@ -47,6 +47,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
         ],
       ),
+      backgroundColor: Colors.blue[50],
     );
   }
 }
