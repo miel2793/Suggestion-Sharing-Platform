@@ -11,7 +11,7 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
-  File? profileImage;
+  bool isImage = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,10 +39,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   ),
                 );
               },
-              child: const CircleAvatar(
+              child:isImage ?  CircleAvatar(
                 radius: 24,
-                backgroundImage: AssetImage("assets/images/p3p3.png"),
-              ),
+                backgroundImage: AssetImage("assets/images/p1.png"),
+              ) : Icon(Icons.person_2_rounded),
             ),
           ),
         ],
