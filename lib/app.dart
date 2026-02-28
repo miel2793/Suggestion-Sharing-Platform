@@ -11,7 +11,7 @@ class Myapp extends StatelessWidget {
       title: "Suggest me app",
       debugShowCheckedModeBanner: false,
 
-      home:LoginScreen() ,
+      home:SplashScreen() ,
     );
   }
 }
