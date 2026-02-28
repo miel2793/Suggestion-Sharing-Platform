@@ -40,7 +40,7 @@ class ChoiceScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                    MaterialPageRoute(builder: (_) =>  ExploreScreen()),
                   );
                 },
               ),
