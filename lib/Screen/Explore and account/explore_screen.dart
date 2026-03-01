@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/Profile.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/Servies/explore_suggestion_Servies.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
+import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/SettingsScreen.dart';
+import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/UploadScreen.dart';
+import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
+import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/EditProfileScreen.dart';
+import 'package:suggestion_sharing_platform/Screen/Splash_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../log and reg/login_screen.dart';
+import 'Servies/explore_suggestion_services.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -14,17 +23,44 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   final TextEditingController _searchController = TextEditingController();
   final SuggestionService _suggestionService = SuggestionService();
+  final AuthService _authService = AuthService();
 
   List<Suggestion> _allSuggestions = [];
   List<Suggestion> _filteredSuggestions = [];
   bool _isLoading = true;
+  bool _isLoggedIn = false;
+  String _userName = '';
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _fetchSuggestions();
+    _checkLoginStatus();
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final loggedIn = await _authService.isLoggedIn();
+    if (loggedIn) {
+      try {
+        final data = await _authService.getProfile();
+        if (mounted) {
+          setState(() {
+            _isLoggedIn = true;
+            _userName = data['name'] ?? '';
+          });
+        }
+      } catch (_) {
+        if (mounted) {
+          setState(() => _isLoggedIn = true);
+        }
+      }
+    } else {
+      if (mounted) {
+        setState(() => _isLoggedIn = false);
+      }
+    }
   }
 
   @override
@@ -64,12 +100,56 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
   }
 
+  void _showLoginDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_outline, color: Color(0xFF5C2D91)),
+            SizedBox(width: 8),
+            Text('Login Required'),
+          ],
+        ),
+        content: const Text('You need to login first to use this feature.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF5C2D91),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Login', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Color(0xFF5C2D91),
+        statusBarIconBrightness: Brightness.light,
+      ),
+      child: SafeArea(
+       child: Scaffold(
         backgroundColor: const Color(0xFFF3E5F5), // light purple bg
-        drawer: _buildDrawer(),
+        drawer: _isLoggedIn ? _buildDrawer() : null,
         body: Builder(
           builder: (scaffoldContext) => Column(
             children: [
@@ -82,7 +162,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               // ── Card List ──
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF5C2D91)))
+                    ? _buildShimmerCards()
                     : _errorMessage != null
                         ? Center(
                             child: Padding(
@@ -139,8 +219,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
         // ── FAB ──
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            // Upload action placeholder
+          onPressed: () async {
+            final loggedIn = await _authService.isLoggedIn();
+            if (!loggedIn) {
+              if (!mounted) return;
+              _showLoginDialog();
+              return;
+            }
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const UploadScreen()),
+            );
+            if (result == true && mounted) {
+              setState(() {
+                _isLoading = true;
+                _errorMessage = null;
+              });
+              _fetchSuggestions();
+            }
           },
           backgroundColor: Colors.white,
           shape: const CircleBorder(
@@ -148,6 +244,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
           child: const Icon(Icons.upload, color: Color(0xFF5C2D91), size: 28),
         ),
+      ),
       ),
     );
   }
@@ -166,11 +263,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       ),
       child: Row(
         children: [
-          // Back arrow
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
-          ),
+          const SizedBox(width: 12),
           const Expanded(
             child: Center(
               child: Text(
@@ -183,26 +276,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
           ),
-          // Profile icon
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => Profile()),
-              );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: const CircleAvatar(
-                radius: 18,
-                backgroundColor: Color(0xFF7B3FA0),
-                child: Icon(Icons.person, color: Colors.white, size: 22),
-              ),
-            ),
-          ),
+          const SizedBox(width: 12),
         ],
       ),
     );
@@ -216,11 +290,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
       color: const Color(0xFF5C2D91),
       child: Row(
         children: [
-          // Drawer hamburger icon
-          IconButton(
-            onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
-            icon: const Icon(Icons.menu, color: Colors.white, size: 26),
-          ),
+          // Drawer hamburger icon (only if logged in)
+          if (_isLoggedIn)
+            IconButton(
+              onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+              icon: const Icon(Icons.menu, color: Colors.white, size: 26),
+            ),
           const SizedBox(width: 8),
           // Search field
           Expanded(
@@ -269,7 +344,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
+            color: Colors.grey.withValues(alpha: 0.15),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -305,21 +380,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFC107),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'vote',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
+                    InkWell(
+                      onTap: () {
+                        debugPrint("Vote clicked!");
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFC107),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'vote',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
-                    ),
+                    )
                   ],
                 ),
               ],
@@ -400,9 +481,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    final uri = Uri.parse(suggestion.attachmentUrl);
-                    if (await canLaunchUrl(uri)) {
+                    final loggedIn = await _authService.isLoggedIn();
+                    if (!loggedIn) {
+                      if (!mounted) return;
+                      _showLoginDialog();
+                      return;
+                    }
+                    try {
+                      final uri = Uri.parse(suggestion.attachmentUrl);
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Could not open the download link.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
                     }
                   },
                   child: const Text(
@@ -428,24 +523,32 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Color(0xFF5C2D91)),
+          DrawerHeader(
+            decoration: const BoxDecoration(color: Color(0xFF5C2D91)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white,
                   child: Icon(Icons.person, size: 36, color: Color(0xFF5C2D91)),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
-                  'Menu',
-                  style: TextStyle(
+                  _userName.isNotEmpty ? _userName : 'Menu',
+                  style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _isLoggedIn ? 'Logged in' : '',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -470,9 +573,139 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ListTile(
             leading: const Icon(Icons.settings, color: Color(0xFF5C2D91)),
             title: const Text('Settings'),
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit, color: Color(0xFF5C2D91)),
+            title: const Text('Edit Profile'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EditProfileScreen(
+                    name: _userName,
+                    dept: '',
+                    intake: '',
+                    section: '',
+                  ),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Logout', style: TextStyle(color: Colors.red)),
+            onTap: () async {
+              Navigator.pop(context);
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed != true || !mounted) return;
+              await _authService.logout();
+              if (!mounted) return;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const SplashScreen()),
+                (route) => false,
+              );
+            },
           ),
         ],
+      ),
+    );
+  }
+
+  // ─────────────────── SHIMMER LOADING ───────────────────
+  Widget _buildShimmerCards() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(
+          left: 16, right: 16, top: 8, bottom: 80,
+        ),
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: const Border(
+                left: BorderSide(color: Color(0xFF5C2D91), width: 4),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top row placeholder
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(width: 70, height: 14, color: Colors.white),
+                    Container(width: 60, height: 14, color: Colors.white),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Title placeholder
+                Container(width: 180, height: 16, color: Colors.white),
+                const SizedBox(height: 8),
+                // Subtitle row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(width: 50, height: 12, color: Colors.white),
+                    Container(width: 60, height: 12, color: Colors.white),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Description lines
+                Container(width: double.infinity, height: 12, color: Colors.white),
+                const SizedBox(height: 6),
+                Container(width: 200, height: 12, color: Colors.white),
+                const SizedBox(height: 12),
+                // Attachment row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(width: 150, height: 12, color: Colors.white),
+                    Container(width: 60, height: 14, color: Colors.white),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

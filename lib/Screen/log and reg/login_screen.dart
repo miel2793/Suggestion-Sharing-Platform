@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Forgot%20password/ForgotPassword.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/SingupScreen.dart';
+import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/signup_screen.dart';
+
+import '../Explore and account/explore_screen.dart';
+import 'Forgot password/forgot_password.dart';
+import 'Services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,12 +13,62 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
-  bool _isPasswordHidden = true;   // ✅ এখানে রাখতে হবে
+  bool _isPasswordHidden = true;
+  bool _isLoading = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
+  final AuthService _authService = AuthService();
+
+  @override
+  void dispose() {
+    email.dispose();
+    password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.login(
+        email: email.text.trim(),
+        password: password.text,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Login successful!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Navigate to ExploreScreen and clear the back stack
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => ExploreScreen()),
+        (route) => false,
+      );
+    } on Exception catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +82,9 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 const Text(
                   "Login",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 40),
@@ -109,7 +158,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -123,25 +171,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             builder: (context) => const ForgotPassword(),
                           ),
                         );
-
                       },
-                      child:  Text("Forgot your password?"),
+                      child: Text("Forgot your password?"),
                     ),
                   ),
                 ),
-                 SizedBox(height: 30),
+                SizedBox(height: 30),
 
                 // Sign in button
                 SizedBox(
                   width: 160,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        debugPrint("Email: ${email.text}");
-                        debugPrint("Password: ${password.text}");
-                      }
-                    },
+                    onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF5A3DF0),
                       shape: RoundedRectangleBorder(
@@ -149,13 +191,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       elevation: 6,
                     ),
-                    child: const Text(
-                      "Sign in",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                        : const Text(
+                            "Sign in",
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
                   ),
                 ),
 
@@ -172,9 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) =>  SignupScreen(),
-                          ),
+                          MaterialPageRoute(builder: (_) => SignupScreen()),
                         );
                       },
                       child: const Text(
