@@ -4,6 +4,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/Profile.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/SettingsScreen.dart';
+import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/AboutHelpScreen.dart';
+import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/ReportFeedbackScreen.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/UploadScreen.dart';
 import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
 import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/EditProfileScreen.dart';
@@ -596,6 +598,28 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     section: '',
                   ),
                 ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: Color(0xFF5C2D91)),
+            title: const Text('About & Help'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutHelpScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.flag_outlined, color: Color(0xFF5C2D91)),
+            title: const Text('Report & Feedback'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReportFeedbackScreen()),
               );
             },
           ),
