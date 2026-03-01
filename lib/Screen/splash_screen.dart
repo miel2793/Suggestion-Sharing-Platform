@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'ChoiceScreen.dart';
-import 'ChoiceScreen.dart';
+import 'Explore and account/explore_screen.dart';
+import 'choice_screen.dart';
+import 'log and reg/Services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,15 +12,22 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 2), () {
+    Timer(const Duration(seconds: 4), () async {
+      final loggedIn = await _authService.isLoggedIn();
+
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const ChoiceScreen()),
+        MaterialPageRoute(
+          builder: (_) => loggedIn ? ExploreScreen() : const ChoiceScreen(),
+        ),
       );
     });
   }
@@ -55,4 +63,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-

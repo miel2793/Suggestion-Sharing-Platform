@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'LoginScreen.dart';
-import 'ExploreScreen.dart';
+
+import 'Explore and account/explore_screen.dart';
+import 'log and reg/login_screen.dart';
+
 
 class ChoiceScreen extends StatelessWidget {
   const ChoiceScreen({super.key});
@@ -17,7 +19,8 @@ class ChoiceScreen extends StatelessWidget {
           children: [
 
             const Text(
-              "Welcome to Suggestion Hub",
+              "Welcome to \n"
+                  "Suggestion Sharing Platform",
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
@@ -39,7 +42,7 @@ class ChoiceScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                    MaterialPageRoute(builder: (_) =>  ExploreScreen()),
                   );
                 },
               ),

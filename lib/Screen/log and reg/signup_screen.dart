@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'Services/auth_service.dart';
 
-class Signup extends StatelessWidget {
-  Signup({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
 
   final TextEditingController name = TextEditingController();
   final TextEditingController department = TextEditingController();
@@ -13,12 +20,70 @@ class Signup extends StatelessWidget {
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
 
+  bool _isLoading = false;
+  bool _isPasswordHidden = true;
+
+  @override
+  void dispose() {
+    name.dispose();
+    department.dispose();
+    intake.dispose();
+    studentId.dispose();
+    section.dispose();
+    email.dispose();
+    password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSignup() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.register(
+        name: name.text.trim(),
+        userId: studentId.text.trim(),
+        email: email.text.trim(),
+        password: password.text,
+        dept: department.text.trim(),
+        intake: intake.text.trim(),
+        section: section.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Registration successful! Please login."),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context); // Go back to Login screen
+    } on Exception catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   Widget _inputBox({
     required TextEditingController controller,
     required String hint,
     bool obscure = false,
     TextInputType type = TextInputType.text,
     String? Function(String?)? validator,
+    Widget? suffixIcon,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -30,13 +95,15 @@ class Signup extends StatelessWidget {
         obscureText: obscure,
         keyboardType: type,
         validator: validator,
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
+          hintText: hint,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
+          contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 14,
           ),
-        ).copyWith(hintText: hint),
+          suffixIcon: suffixIcon,
+        ),
       ),
     );
   }
@@ -45,10 +112,6 @@ class Signup extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue[50],
-     /* appBar: AppBar(
-        title: const Text("Login"),
-        backgroundColor: Colors.cyan[100],
-      ),*/
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
@@ -58,8 +121,6 @@ class Signup extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // switched to Dev Branch
-
                   const SizedBox(height: 30),
 
                   const Text(
@@ -76,7 +137,7 @@ class Signup extends StatelessWidget {
                     controller: name,
                     hint: "Full Name",
                     validator: (v) =>
-                    v!.isEmpty ? "Name required" : null,
+                        v!.isEmpty ? "Name required" : null,
                   ),
 
                   const SizedBox(height: 15),
@@ -85,7 +146,7 @@ class Signup extends StatelessWidget {
                     controller: department,
                     hint: "Department",
                     validator: (v) =>
-                    v!.isEmpty ? "Department required" : null,
+                        v!.isEmpty ? "Department required" : null,
                   ),
 
                   const SizedBox(height: 15),
@@ -95,7 +156,7 @@ class Signup extends StatelessWidget {
                     hint: "Intake",
                     type: TextInputType.number,
                     validator: (v) =>
-                    v!.isEmpty ? "Intake required" : null,
+                        v!.isEmpty ? "Intake required" : null,
                   ),
 
                   const SizedBox(height: 15),
@@ -105,7 +166,7 @@ class Signup extends StatelessWidget {
                     hint: "Student ID",
                     type: TextInputType.number,
                     validator: (v) =>
-                    v!.isEmpty ? "ID required" : null,
+                        v!.isEmpty ? "ID required" : null,
                   ),
 
                   const SizedBox(height: 15),
@@ -114,7 +175,7 @@ class Signup extends StatelessWidget {
                     controller: section,
                     hint: "Section",
                     validator: (v) =>
-                    v!.isEmpty ? "Section required" : null,
+                        v!.isEmpty ? "Section required" : null,
                   ),
 
                   const SizedBox(height: 15),
@@ -135,7 +196,7 @@ class Signup extends StatelessWidget {
                   _inputBox(
                     controller: password,
                     hint: "Password",
-                    obscure: true,
+                    obscure: _isPasswordHidden,
                     validator: (v) {
                       if (v!.isEmpty) return "Password required";
                       if (v.length < 6) {
@@ -143,6 +204,18 @@ class Signup extends StatelessWidget {
                       }
                       return null;
                     },
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordHidden
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordHidden = !_isPasswordHidden;
+                        });
+                      },
+                    ),
                   ),
 
                   const SizedBox(height: 30),
@@ -158,18 +231,23 @@ class Signup extends StatelessWidget {
                         ),
                         elevation: 6,
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          debugPrint("Signup Successful");
-                        }
-                      },
-                      child: const Text(
-                        "Sign up",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
+                      onPressed: _isLoading ? null : _handleSignup,
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text(
+                              "Sign up",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
 
