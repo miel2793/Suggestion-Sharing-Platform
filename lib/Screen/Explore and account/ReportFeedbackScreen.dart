@@ -66,13 +66,13 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3E5F5),
+      backgroundColor: Color(0xFFE3F2FD),
       appBar: AppBar(
         title: const Text(
           'Report & Feedback',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF5C2D91),
+        backgroundColor: Color(0xFF42A5F5),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -105,14 +105,14 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF5C2D91), Color(0xFF7B4DB5)],
+          colors: [Color(0xFF42A5F5), Color(0xFF64B5F6)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF5C2D91).withValues(alpha: 0.3),
+            color: Color(0xFF42A5F5).withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -166,14 +166,14 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
         children: [
           const Row(
             children: [
-              Icon(Icons.edit_note, color: Color(0xFF5C2D91), size: 24),
+              Icon(Icons.edit_note, color: Color(0xFF42A5F5), size: 24),
               SizedBox(width: 8),
               Text(
                 'Submit Feedback',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF5C2D91),
+                  color: Color(0xFF42A5F5),
                 ),
               ),
             ],
@@ -194,7 +194,7 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3E5F5),
+              color: Color(0xFFE3F2FD),
               borderRadius: BorderRadius.circular(12),
             ),
             child: DropdownButtonFormField<String>(
@@ -203,7 +203,7 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
                 border: InputBorder.none,
               ),
               icon: const Icon(Icons.keyboard_arrow_down,
-                  color: Color(0xFF5C2D91)),
+                  color: Color(0xFF42A5F5)),
               dropdownColor: Colors.white,
               style: const TextStyle(
                 fontSize: 14,
@@ -217,7 +217,7 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
                             Icon(
                               _getCategoryIcon(cat),
                               size: 18,
-                              color: const Color(0xFF5C2D91),
+                              color: Color(0xFF42A5F5),
                             ),
                             const SizedBox(width: 10),
                             Text(cat),
@@ -245,7 +245,7 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFF3E5F5),
+              color: Color(0xFFE3F2FD),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextFormField(
@@ -257,7 +257,7 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 prefixIcon:
-                    Icon(Icons.subject, color: Color(0xFF5C2D91), size: 20),
+                    Icon(Icons.subject, color: Color(0xFF42A5F5), size: 20),
               ),
               style: const TextStyle(fontSize: 14),
               validator: (value) {
@@ -283,7 +283,7 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFF3E5F5),
+              color: Color(0xFFE3F2FD),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextFormField(
@@ -320,7 +320,7 @@ class _ReportFeedbackScreenState extends State<ReportFeedbackScreen> {
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _handleSubmit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5C2D91),
+                backgroundColor: Color(0xFF42A5F5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

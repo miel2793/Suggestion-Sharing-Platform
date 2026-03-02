@@ -109,7 +109,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.lock_outline, color: Color(0xFF5C2D91)),
+            Icon(Icons.lock_outline, color: Color(0xFF42A5F5)),
             SizedBox(width: 8),
             Text('Login Required'),
           ],
@@ -129,7 +129,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF5C2D91),
+              backgroundColor: Color(0xFF42A5F5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -141,16 +141,105 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
+  void _showFaqDialog() {
+    final List<Map<String, String>> faqs = [
+      {
+        'question': 'How do I upload a suggestion?',
+        'answer':
+            'Tap the upload button on the Home screen. Fill in the course details, select your file, and tap Submit.',
+      },
+      {
+        'question': 'How do I search for suggestions?',
+        'answer':
+            'Use the search bar at the top of the Home screen. Search by course name or course code.',
+      },
+      {
+        'question': 'How do I download an attachment?',
+        'answer':
+            'Find the suggestion card and tap "Download". You need to be logged in.',
+      },
+      {
+        'question': 'Do I need an account to browse?',
+        'answer':
+            'You can browse without an account, but you need to log in to upload, download, and access your profile.',
+      },
+      {
+        'question': 'How do I edit my profile?',
+        'answer':
+            'Open the side menu and tap "Edit Profile".',
+      },
+      {
+        'question': 'How do I change my password?',
+        'answer':
+            'Go to Settings from the drawer menu.',
+      },
+    ];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.quiz_outlined, color: Color(0xFF42A5F5)),
+            SizedBox(width: 8),
+            Text('FAQ'),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: faqs
+                .map((faq) => Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Theme(
+                        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                          childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
+                          iconColor: const Color(0xFF42A5F5),
+                          collapsedIconColor: const Color(0xFF42A5F5),
+                          title: Text(
+                            faq['question']!,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                          children: [
+                            Text(
+                              faq['answer']!,
+                              style: TextStyle(fontSize: 12, color: Colors.grey[700], height: 1.4),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF5C2D91),
+        statusBarColor: Color(0xFF42A5F5),
         statusBarIconBrightness: Brightness.light,
       ),
       child: SafeArea(
        child: Scaffold(
-        backgroundColor: const Color(0xFFF3E5F5), // light purple bg
+        backgroundColor: Color(0xFFE3F2FD), // light purple bg
         drawer: _isLoggedIn ? _buildDrawer() : null,
         body: Builder(
           builder: (scaffoldContext) => Column(
@@ -203,7 +292,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               )
                             : RefreshIndicator(
                                 onRefresh: _fetchSuggestions,
-                                color: const Color(0xFF5C2D91),
+                                color: Color(0xFF42A5F5),
                                 child: ListView.builder(
                                   padding: const EdgeInsets.only(
                                     left: 16, right: 16, top: 8, bottom: 80,
@@ -242,9 +331,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
           },
           backgroundColor: Colors.white,
           shape: const CircleBorder(
-            side: BorderSide(color: Color(0xFF5C2D91), width: 2),
+            side: BorderSide(color: Color(0xFF42A5F5), width: 2),
           ),
-          child: const Icon(Icons.upload, color: Color(0xFF5C2D91), size: 28),
+          child: Icon(Icons.upload, color: Color(0xFF42A5F5), size: 28),
         ),
       ),
       ),
@@ -257,7 +346,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: const BoxDecoration(
-        color: Color(0xFF5C2D91), // deep purple
+        color: Color(0xFF42A5F5), // deep purple
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(0),
           bottomRight: Radius.circular(0),
@@ -289,14 +378,38 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      color: const Color(0xFF5C2D91),
+      color: Color(0xFF42A5F5),
       child: Row(
         children: [
-          // Drawer hamburger icon (only if logged in)
+          // Drawer hamburger icon (logged in) or Login button (logged out)
           if (_isLoggedIn)
             IconButton(
               onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
               icon: const Icon(Icons.menu, color: Colors.white, size: 26),
+            )
+          else
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.login, color: Colors.white, size: 26),
+                  SizedBox(height: 2),
+                  Text(
+                    'Login Here',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           const SizedBox(width: 8),
           // Search field
@@ -327,22 +440,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   // ─────────────────── SUGGESTION CARD ───────────────────
   Widget _buildSuggestionCard(Suggestion suggestion) {
-    // Extract attachment filename from URL
-    String attachmentName = 'attachment.pdf';
-    try {
-      attachmentName = Uri.parse(suggestion.attachmentUrl).pathSegments.last;
-      if (attachmentName.length > 20) {
-        attachmentName = '${attachmentName.substring(0, 17)}...';
-      }
-    } catch (_) {}
-
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: const Border(
-          left: BorderSide(color: Color(0xFF5C2D91), width: 4),
+          left: BorderSide(color: Colors.black, width: 4),
         ),
         boxShadow: [
           BoxShadow(
@@ -364,7 +468,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 Text(
                   suggestion.courseCode,
                   style: const TextStyle(
-                    color: Color(0xFF5C2D91),
+                    color: Colors.black,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -378,7 +482,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
-                        color: Color(0xFF5C2D91),
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -439,7 +543,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 Text(
                   '${suggestion.dept}:${suggestion.section}',
                   style: const TextStyle(
-                    color: Color(0xFF5C2D91),
+                    color: Colors.black,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -463,18 +567,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
             const SizedBox(height: 10),
 
-            // ── Attachment + Download ──
+            // ── Uploader + Download ──
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.attachment, color: Color(0xFF5C2D91), size: 18),
+                    const Icon(Icons.person, color: Colors.black, size: 18),
                     const SizedBox(width: 4),
                     Text(
-                      'Attachment: $attachmentName',
+                      suggestion.uploadedBy.name,
                       style: const TextStyle(
-                        color: Color(0xFF5C2D91),
+                        color: Colors.black,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -505,7 +609,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   child: const Text(
                     'Download',
                     style: TextStyle(
-                      color: Color(0xFF5C2D91),
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -526,7 +630,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFF5C2D91)),
+            decoration: BoxDecoration(color: Color(0xFF42A5F5)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -534,7 +638,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 36, color: Color(0xFF5C2D91)),
+                  child: Icon(Icons.person, size: 36, color: Color(0xFF42A5F5)),
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -557,12 +661,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.home, color: Color(0xFF5C2D91)),
+            leading: Icon(Icons.home, color: Color(0xFF42A5F5)),
             title: const Text('Home'),
             onTap: () => Navigator.pop(context),
           ),
           ListTile(
-            leading: const Icon(Icons.person, color: Color(0xFF5C2D91)),
+            leading: Icon(Icons.person, color: Color(0xFF42A5F5)),
             title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context);
@@ -573,7 +677,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.settings, color: Color(0xFF5C2D91)),
+            leading: Icon(Icons.settings, color: Color(0xFF42A5F5)),
             title: const Text('Settings'),
             onTap: () {
               Navigator.pop(context);
@@ -584,7 +688,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.edit, color: Color(0xFF5C2D91)),
+            leading: Icon(Icons.edit, color: Color(0xFF42A5F5)),
             title: const Text('Edit Profile'),
             onTap: () {
               Navigator.pop(context);
@@ -602,8 +706,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.help_outline, color: Color(0xFF5C2D91)),
-            title: const Text('About & Help'),
+            leading: Icon(Icons.quiz_outlined, color: Color(0xFF42A5F5)),
+            title: const Text('FAQ'),
+            onTap: () {
+              Navigator.pop(context);
+              _showFaqDialog();
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.info_outline, color: Color(0xFF42A5F5)),
+            title: const Text('About'),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -613,7 +725,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.flag_outlined, color: Color(0xFF5C2D91)),
+            leading: Icon(Icons.flag_outlined, color: Color(0xFF42A5F5)),
             title: const Text('Report & Feedback'),
             onTap: () {
               Navigator.pop(context);
@@ -686,7 +798,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: const Border(
-                left: BorderSide(color: Color(0xFF5C2D91), width: 4),
+                left: BorderSide(color: Color(0xFF42A5F5), width: 4),
               ),
             ),
             child: Column(

@@ -58,7 +58,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFF5C2D91)),
+              leading: Icon(Icons.photo_library, color: Color(0xFF42A5F5)),
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -66,7 +66,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFF5C2D91)),
+              leading: Icon(Icons.camera_alt, color: Color(0xFF42A5F5)),
               title: const Text('Take a Photo'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -141,8 +141,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         validator: validator,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Color(0xFF5C2D91), fontSize: 14),
-          prefixIcon: Icon(icon, color: const Color(0xFF5C2D91), size: 20),
+          labelStyle: TextStyle(color: Color(0xFF42A5F5), fontSize: 14),
+          prefixIcon: Icon(icon, color: Color(0xFF42A5F5), size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
@@ -153,13 +153,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3E5F5),
+      backgroundColor: Color(0xFFE3F2FD),
       appBar: AppBar(
         title: const Text(
           'Edit Profile',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF5C2D91),
+        backgroundColor: Color(0xFF42A5F5),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -176,7 +176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 45,
-                      backgroundColor: const Color(0xFF5C2D91),
+                      backgroundColor: Color(0xFF42A5F5),
                       backgroundImage:
                           _pickedImage != null ? FileImage(_pickedImage!) : null,
                       child: _pickedImage == null
@@ -189,7 +189,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF5C2D91),
+                          color: Color(0xFF42A5F5),
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
@@ -280,7 +280,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5C2D91),
+                    backgroundColor: Color(0xFF42A5F5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

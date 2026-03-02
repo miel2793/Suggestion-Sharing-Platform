@@ -121,7 +121,7 @@ class _UploadScreenState extends State<UploadScreen> {
         validator: validator,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Color(0xFF5C2D91), fontSize: 14),
+          labelStyle: TextStyle(color: Color(0xFF42A5F5), fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
@@ -132,13 +132,13 @@ class _UploadScreenState extends State<UploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3E5F5),
+      backgroundColor: Color(0xFFE3F2FD),
       appBar: AppBar(
         title: const Text(
           'Upload Suggestion',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF5C2D91),
+        backgroundColor: Color(0xFF42A5F5),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -160,7 +160,7 @@ class _UploadScreenState extends State<UploadScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: _pickedFile != null
-                          ? const Color(0xFF5C2D91)
+                          ? Color(0xFF42A5F5)
                           : Colors.grey.shade300,
                       width: 2,
                       strokeAlign: BorderSide.strokeAlignInside,
@@ -174,7 +174,7 @@ class _UploadScreenState extends State<UploadScreen> {
                             : Icons.cloud_upload_outlined,
                         color: _pickedFile != null
                             ? Colors.green
-                            : const Color(0xFF5C2D91),
+                            : Color(0xFF42A5F5),
                         size: 48,
                       ),
                       const SizedBox(height: 8),
@@ -268,7 +268,7 @@ class _UploadScreenState extends State<UploadScreen> {
                   value: _selectedExamType,
                   decoration: const InputDecoration(
                     labelText: 'Exam Type',
-                    labelStyle: TextStyle(color: Color(0xFF5C2D91), fontSize: 14),
+                    labelStyle: TextStyle(color: Color(0xFF42A5F5), fontSize: 14),
                     border: InputBorder.none,
                   ),
                   dropdownColor: const Color(0xFFEDE9FF),
@@ -321,7 +321,7 @@ class _UploadScreenState extends State<UploadScreen> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5C2D91),
+                    backgroundColor: Color(0xFF42A5F5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
