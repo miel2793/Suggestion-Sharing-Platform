@@ -101,13 +101,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3E5F5),
+      backgroundColor: Color(0xFFE3F2FD),
       appBar: AppBar(
         title: const Text(
           'Settings',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF5C2D91),
+        backgroundColor: Color(0xFF42A5F5),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -138,14 +138,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.lock_outline, color: Color(0xFF5C2D91), size: 24),
+                        Icon(Icons.lock_outline, color: Color(0xFF42A5F5), size: 24),
                         SizedBox(width: 8),
                         Text(
                           'Change Password',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF5C2D91),
+                            color: Color(0xFF42A5F5),
                           ),
                         ),
                       ],
@@ -208,7 +208,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleChangePassword,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF5C2D91),
+                          backgroundColor: Color(0xFF42A5F5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -322,13 +322,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         validator: validator,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Color(0xFF5C2D91), fontSize: 14),
+          labelStyle: TextStyle(color: Color(0xFF42A5F5), fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           suffixIcon: IconButton(
             icon: Icon(
               isHidden ? Icons.visibility_off : Icons.visibility,
-              color: const Color(0xFF5C2D91),
+              color: Color(0xFF42A5F5),
               size: 20,
             ),
             onPressed: onToggle,

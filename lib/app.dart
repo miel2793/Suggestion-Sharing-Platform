@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'Screen/Splash_screen.dart';
+
 class Myapp extends StatelessWidget {
   const Myapp({super.key});
 
@@ -9,8 +11,12 @@ class Myapp extends StatelessWidget {
     return MaterialApp(
       title: "Suggest me app",
       debugShowCheckedModeBanner: false,
-
-      home:SplashScreen() ,
+      theme: ThemeData(
+        textTheme: GoogleFonts.interTextTheme(
+          Theme.of(context).textTheme,
+        ),
+      ),
+      home: SplashScreen(),
     );
   }
 }

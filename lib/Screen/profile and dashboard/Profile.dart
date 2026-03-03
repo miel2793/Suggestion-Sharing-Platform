@@ -40,19 +40,19 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3E5F5),
+      backgroundColor: Color(0xFFE3F2FD),
       appBar: AppBar(
         title: const Text(
           'My Profile',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF5C2D91),
+        backgroundColor: Color(0xFF42A5F5),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF5C2D91)),
+              child: CircularProgressIndicator(color: Color(0xFF42A5F5)),
             )
           : _error != null
               ? Center(
@@ -82,7 +82,7 @@ class _ProfileState extends State<Profile> {
                 )
               : RefreshIndicator(
                   onRefresh: _fetchProfile,
-                  color: const Color(0xFF5C2D91),
+                  color: Color(0xFF42A5F5),
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(20),
@@ -120,7 +120,7 @@ class _ProfileState extends State<Profile> {
           // Avatar
           const CircleAvatar(
             radius: 40,
-            backgroundColor: Color(0xFF5C2D91),
+            backgroundColor: Color(0xFF42A5F5),
             child: Icon(Icons.person, color: Colors.white, size: 48),
           ),
           const SizedBox(height: 14),
@@ -131,7 +131,7 @@ class _ProfileState extends State<Profile> {
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF5C2D91),
+              color: Color(0xFF42A5F5),
             ),
           ),
           const SizedBox(height: 4),
@@ -155,7 +155,7 @@ class _ProfileState extends State<Profile> {
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF5C2D91),
+                color: Color(0xFF42A5F5),
               ),
             ),
           ),
@@ -183,7 +183,7 @@ class _ProfileState extends State<Profile> {
   Widget _infoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, color: const Color(0xFF5C2D91), size: 20),
+        Icon(icon, color: Color(0xFF42A5F5), size: 20),
         const SizedBox(width: 12),
         Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
         const Spacer(),
@@ -211,7 +211,7 @@ class _ProfileState extends State<Profile> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF5C2D91),
+            color: Color(0xFF42A5F5),
           ),
         ),
         const SizedBox(height: 12),
@@ -257,7 +257,7 @@ class _ProfileState extends State<Profile> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: const Border(
-          left: BorderSide(color: Color(0xFF5C2D91), width: 4),
+          left: BorderSide(color: Color(0xFF42A5F5), width: 4),
         ),
         boxShadow: [
           BoxShadow(
@@ -277,7 +277,7 @@ class _ProfileState extends State<Profile> {
               Text(
                 upload.courseCode,
                 style: const TextStyle(
-                  color: Color(0xFF5C2D91),
+                  color: Color(0xFF42A5F5),
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
@@ -329,7 +329,7 @@ class _ProfileState extends State<Profile> {
               Text(
                 '${upload.dept}:${upload.section}',
                 style: const TextStyle(
-                  color: Color(0xFF5C2D91),
+                  color: Color(0xFF42A5F5),
                   fontSize: 12,
                 ),
               ),
@@ -360,7 +360,7 @@ class _ProfileState extends State<Profile> {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
-                      color: Color(0xFF5C2D91),
+                      color: Color(0xFF42A5F5),
                     ),
                   ),
                 ],
