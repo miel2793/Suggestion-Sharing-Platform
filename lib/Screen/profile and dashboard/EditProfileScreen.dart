@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String name;
@@ -30,6 +31,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isLoading = false;
   File? _pickedImage;
 
+  // Plain solid colors
+  static const _primaryColor = Color(0xFF1976D2);
+  static const _surfaceColor = Colors.white;
+  static const _textPrimary = Color(0xFF212121);
+  static const _textSecondary = Color(0xFF757575);
+  static const _borderColor = Color(0xFFE0E0E0);
+  static const _errorColor = Color(0xFFD32F2F);
+  static const _successColor = Color(0xFF388E3C);
+
   @override
   void initState() {
     super.initState();
@@ -58,7 +68,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Wrap(
           children: [
             ListTile(
-              leading: Icon(Icons.photo_library, color: Color(0xFF42A5F5)),
+              leading: Icon(Icons.photo_library, color: _primaryColor),
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -66,7 +76,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.camera_alt, color: Color(0xFF42A5F5)),
+              leading: Icon(Icons.camera_alt, color: _primaryColor),
               title: const Text('Take a Photo'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -92,9 +102,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not open image picker. Try restarting the app.'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Could not open image picker. Try restarting the app.'),
+          backgroundColor: _errorColor,
         ),
       );
     }
@@ -105,20 +115,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _isLoading = true);
 
+    try {
+      final authService = AuthService();
+      await authService.updateProfile(
+        name: _nameController.text.trim(),
+        dept: _deptController.text.trim(),
+        intake: _intakeController.text.trim(),
+        section: _sectionController.text.trim(),
+      );
 
-    await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
 
-    if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Profile updated successfully!'),
+          backgroundColor: _successColor,
+        ),
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile updated successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    setState(() => _isLoading = false);
-    Navigator.pop(context, true);
+      setState(() => _isLoading = false);
+      Navigator.pop(context, {
+        'name': _nameController.text.trim(),
+        'dept': _deptController.text.trim(),
+        'intake': _intakeController.text.trim(),
+        'section': _sectionController.text.trim(),
+        'image': _pickedImage,
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: _errorColor,
+        ),
+      );
+    }
   }
 
   Widget _buildField({
@@ -131,18 +163,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: readOnly ? Colors.grey[200] : const Color(0xFFEDE9FF),
+        color: readOnly ? const Color(0xFFF5F5F5) : _surfaceColor,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _borderColor, width: 1),
       ),
       child: TextFormField(
         controller: controller,
         keyboardType: type,
         readOnly: readOnly,
         validator: validator,
+        style: const TextStyle(color: _textPrimary, fontSize: 16),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Color(0xFF42A5F5), fontSize: 14),
-          prefixIcon: Icon(icon, color: Color(0xFF42A5F5), size: 20),
+          labelStyle: const TextStyle(color: _textSecondary, fontSize: 14),
+          prefixIcon: Icon(icon, color: _primaryColor, size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
@@ -153,15 +187,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE3F2FD),
+      backgroundColor: const Color(0xFFF8F9FA), // Soft off-white background
       appBar: AppBar(
         title: const Text(
           'Edit Profile',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Color(0xFF42A5F5),
+        backgroundColor: _primaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
+        centerTitle: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -169,127 +204,145 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // Avatar with camera icon
-              GestureDetector(
-                onTap: _pickImage,
-                child: Stack(
+              // Profile image section
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 45,
-                      backgroundColor: Color(0xFF42A5F5),
-                      backgroundImage:
-                          _pickedImage != null ? FileImage(_pickedImage!) : null,
-                      child: _pickedImage == null
-                          ? const Icon(Icons.person, color: Colors.white, size: 50)
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF42A5F5),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 16,
-                        ),
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 55,
+                            backgroundColor: _primaryColor.withOpacity(0.1),
+                            backgroundImage: _pickedImage != null
+                                ? FileImage(_pickedImage!)
+                                : null,
+                            child: _pickedImage == null
+                                ? Icon(
+                              Icons.person,
+                              color: _primaryColor,
+                              size: 55,
+                            )
+                                : null,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: _primaryColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Tap to change profile photo',
+                      style: TextStyle(color: _textSecondary, fontSize: 13),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Tap photo to change',
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
-              ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 16),
 
-              // Name
-              _buildField(
-                controller: _nameController,
-                label: 'Full Name',
-                icon: Icons.person_outline,
-                validator: (v) => v!.isEmpty ? 'Name required' : null,
-              ),
-              const SizedBox(height: 14),
-
-              // Department
-              _buildField(
-                controller: _deptController,
-                label: 'Department',
-                icon: Icons.school_outlined,
-                validator: (v) => v!.isEmpty ? 'Department required' : null,
-              ),
-              const SizedBox(height: 14),
-
-              // Intake & Section
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildField(
-                      controller: _intakeController,
-                      label: 'Intake',
-                      icon: Icons.numbers,
-                      type: TextInputType.number,
-                      validator: (v) => v!.isEmpty ? 'Required' : null,
+              // Form card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: _surfaceColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _borderColor, width: 1),
+                ),
+                child: Column(
+                  children: [
+                    _buildField(
+                      controller: _nameController,
+                      label: 'Full Name',
+                      icon: Icons.person_outline,
+                      validator: (v) => v!.isEmpty ? 'Name required' : null,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildField(
-                      controller: _sectionController,
-                      label: 'Section',
-                      icon: Icons.group_outlined,
-                      validator: (v) => v!.isEmpty ? 'Required' : null,
+                    const SizedBox(height: 16),
+                    _buildField(
+                      controller: _deptController,
+                      label: 'Department',
+                      icon: Icons.school_outlined,
+                      validator: (v) => v!.isEmpty ? 'Department required' : null,
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _handleSave,
-                  icon: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildField(
+                            controller: _intakeController,
+                            label: 'Intake',
+                            icon: Icons.numbers,
+                            type: TextInputType.number,
+                            validator: (v) => v!.isEmpty ? 'Required' : null,
                           ),
-                        )
-                      : const Icon(Icons.save, color: Colors.white),
-                  label: Text(
-                    _isLoading ? 'Saving...' : 'Save Changes',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildField(
+                            controller: _sectionController,
+                            label: 'Section',
+                            icon: Icons.group_outlined,
+                            validator: (v) => v!.isEmpty ? 'Required' : null,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF42A5F5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 4,
-                  ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
+
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleSave,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryColor,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: _primaryColor.withOpacity(0.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                      : const Text(
+                    'Save Changes',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

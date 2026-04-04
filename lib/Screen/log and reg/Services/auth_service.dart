@@ -124,6 +124,48 @@ class AuthService {
     }
   }
 
+  // ─── UPDATE PROFILE ────────────────────────────────────────────────
+
+  /// Updates the current user's profile on the backend.
+  Future<Map<String, dynamic>> updateProfile({
+    required String name,
+    required String dept,
+    required String intake,
+    required String section,
+  }) async {
+    try {
+      final cookie = await getToken();
+      final response = await _dio.put(
+        "/auth/update-profile",
+        data: {
+          "name": name,
+          "dept": dept,
+          "intake": intake,
+          "section": section,
+        },
+        options: Options(
+          headers: {
+            if (cookie != null) "Cookie": cookie,
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        throw Exception("Failed to update profile.");
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          throw Exception(data['message']);
+        }
+      }
+      throw Exception("Network error. Please check your connection.");
+    }
+  }
+
   // ─── TOKEN / SESSION HELPERS ──────────────────────────────────────
 
   Future<void> _saveCookie(String cookie) async {
