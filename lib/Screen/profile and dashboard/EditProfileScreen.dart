@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart';
 import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -113,34 +114,107 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Check image size (max 10MB)
+    if (_pickedImage != null) {
+      final fileSize = await _pickedImage!.length();
+      if (fileSize > 10 * 1024 * 1024) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Image size must be less than 10 MB.'),
+            backgroundColor: _errorColor,
+          ),
+        );
+        return;
+      }
+    }
+
     setState(() => _isLoading = true);
 
     try {
       final authService = AuthService();
-      await authService.updateProfile(
-        name: _nameController.text.trim(),
-        dept: _deptController.text.trim(),
-        intake: _intakeController.text.trim(),
-        section: _sectionController.text.trim(),
+      final cookie = await authService.getToken();
+
+      // Build FormData — only include fields that have values
+      final Map<String, dynamic> formFields = {};
+
+      final name = _nameController.text.trim();
+      final dept = _deptController.text.trim();
+      final intake = _intakeController.text.trim();
+      final section = _sectionController.text.trim();
+
+      if (name.isNotEmpty) formFields['name'] = name;
+      if (dept.isNotEmpty) formFields['dept'] = dept;
+      if (intake.isNotEmpty) formFields['intake'] = intake;
+      if (section.isNotEmpty) formFields['section'] = section;
+
+      // Attach image as 'img_url' if picked
+      if (_pickedImage != null) {
+        final fileName = _pickedImage!.path.split('/').last;
+        formFields['img_url'] = await MultipartFile.fromFile(
+          _pickedImage!.path,
+          filename: fileName,
+        );
+      }
+
+      final formData = FormData.fromMap(formFields);
+
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: 'https://sdp-3-backend.vercel.app/api',
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
+
+      final response = await dio.put(
+        '/auth/update-profile',
+        data: formData,
+        options: Options(
+          headers: {
+            if (cookie != null) 'Cookie': cookie,
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
       );
 
       if (!mounted) return;
 
+      final data = response.data;
+      final message = data is Map && data.containsKey('message')
+          ? data['message']
+          : 'Profile updated successfully!';
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Profile updated successfully!'),
+          content: Text(message.toString()),
           backgroundColor: _successColor,
         ),
       );
 
       setState(() => _isLoading = false);
       Navigator.pop(context, {
-        'name': _nameController.text.trim(),
-        'dept': _deptController.text.trim(),
-        'intake': _intakeController.text.trim(),
-        'section': _sectionController.text.trim(),
+        'name': name,
+        'dept': dept,
+        'intake': intake,
+        'section': section,
         'image': _pickedImage,
       });
+    } on DioException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      String errorMsg = 'Failed to update profile.';
+      if (e.response != null && e.response!.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          errorMsg = data['message'];
+        }
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: _errorColor,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);

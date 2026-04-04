@@ -23,6 +23,16 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
   bool _isPasswordHidden = true;
 
+  // Professional solid color palette
+  static const _primaryColor = Color(0xFF1E88E5);
+  static const _surfaceColor = Colors.white;
+  static const _backgroundLight = Color(0xFFF8FAFF);
+  static const _textPrimary = Color(0xFF1F2937);
+  static const _textSecondary = Color(0xFF6B7280);
+  static const _borderColor = Color(0xFFE5E7EB);
+  static const _errorColor = Color(0xFFEF4444);
+  static const _successColor = Color(0xFF10B981);
+
   @override
   void dispose() {
     name.dispose();
@@ -54,9 +64,12 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Registration successful! Please login."),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text("Registration successful! Please login."),
+          backgroundColor: _successColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
         ),
       );
 
@@ -67,7 +80,10 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red,
+          backgroundColor: _errorColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
         ),
       );
     } finally {
@@ -77,7 +93,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  Widget _inputBox({
+  Widget _buildInputField({
     required TextEditingController controller,
     required String hint,
     bool obscure = false,
@@ -87,20 +103,24 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFEDE9FF),
-        borderRadius: BorderRadius.circular(12),
+        color: _surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _borderColor, width: 1),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: obscure,
         keyboardType: type,
+        textInputAction: TextInputAction.next,
         validator: validator,
+        style: const TextStyle(fontSize: 15, color: _textPrimary),
         decoration: InputDecoration(
           hintText: hint,
+          hintStyle: const TextStyle(color: _textSecondary, fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
-            vertical: 14,
+            vertical: 16,
           ),
           suffixIcon: suffixIcon,
         ),
@@ -111,97 +131,116 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
-      body: SingleChildScrollView(
+      backgroundColor: _backgroundLight,
+      body: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 30),
-
+                  // App Logo / Icon
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: _primaryColor,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: const Icon(
+                      Icons.person_add_alt_1,
+                      color: Colors.white,
+                      size: 42,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   const Text(
                     "Create Account",
                     style: TextStyle(
                       fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
+                      color: _textPrimary,
                     ),
+                    textAlign: TextAlign.center,
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Join the community and share suggestions",
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: _textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
 
-                  const SizedBox(height: 30),
-
-                  _inputBox(
+                  // Form fields
+                  _buildInputField(
                     controller: name,
                     hint: "Full Name",
-                    validator: (v) =>
-                        v!.isEmpty ? "Name required" : null,
+                    validator: (v) => v!.isEmpty ? "Name required" : null,
                   ),
+                  const SizedBox(height: 16),
 
-                  const SizedBox(height: 15),
-
-                  _inputBox(
+                  _buildInputField(
                     controller: department,
-                    hint: "Department",
-                    validator: (v) =>
-                        v!.isEmpty ? "Department required" : null,
+                    hint: "Department (e.g., CSE)",
+                    validator: (v) => v!.isEmpty ? "Department required" : null,
                   ),
+                  const SizedBox(height: 16),
 
-                  const SizedBox(height: 15),
-
-                  _inputBox(
-                    controller: intake,
-                    hint: "Intake",
-                    type: TextInputType.number,
-                    validator: (v) =>
-                        v!.isEmpty ? "Intake required" : null,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildInputField(
+                          controller: intake,
+                          hint: "Intake",
+                          type: TextInputType.number,
+                          validator: (v) => v!.isEmpty ? "Required" : null,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildInputField(
+                          controller: section,
+                          hint: "Section",
+                          validator: (v) => v!.isEmpty ? "Required" : null,
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 16),
 
-                  const SizedBox(height: 15),
-
-                  _inputBox(
+                  _buildInputField(
                     controller: studentId,
                     hint: "Student ID",
                     type: TextInputType.number,
-                    validator: (v) =>
-                        v!.isEmpty ? "ID required" : null,
+                    validator: (v) => v!.isEmpty ? "Student ID required" : null,
                   ),
+                  const SizedBox(height: 16),
 
-                  const SizedBox(height: 15),
-
-                  _inputBox(
-                    controller: section,
-                    hint: "Section",
-                    validator: (v) =>
-                        v!.isEmpty ? "Section required" : null,
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  _inputBox(
+                  _buildInputField(
                     controller: email,
-                    hint: "Email",
+                    hint: "Email address",
                     type: TextInputType.emailAddress,
                     validator: (v) {
                       if (v!.isEmpty) return "Email required";
-                      if (!v.contains('@')) return "Invalid email";
+                      if (!v.contains('@')) return "Enter a valid email";
                       return null;
                     },
                   ),
+                  const SizedBox(height: 16),
 
-                  const SizedBox(height: 15),
-
-                  _inputBox(
+                  _buildInputField(
                     controller: password,
                     hint: "Password",
                     obscure: _isPasswordHidden,
                     validator: (v) {
                       if (v!.isEmpty) return "Password required";
-                      if (v.length < 6) {
-                        return "Minimum 6 characters";
-                      }
+                      if (v.length < 6) return "Minimum 6 characters";
                       return null;
                     },
                     suffixIcon: IconButton(
@@ -209,6 +248,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         _isPasswordHidden
                             ? Icons.visibility_off
                             : Icons.visibility,
+                        color: _textSecondary,
                       ),
                       onPressed: () {
                         setState(() {
@@ -218,64 +258,72 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 32),
 
+                  // Sign up button
                   SizedBox(
-                    width: 180,
-                    height: 48,
+                    height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5A3DF0),
+                        backgroundColor: _primaryColor,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: _primaryColor.withOpacity(0.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        elevation: 6,
+                        elevation: 0,
                       ),
                       onPressed: _isLoading ? null : _handleSignup,
                       child: _isLoading
                           ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
-                              ),
-                            )
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
                           : const Text(
-                              "Sign up",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
+                        "Sign Up",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 24),
 
+                  // Login link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         "Already have an account? ",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: _textSecondary,
+                          fontSize: 14,
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                         },
+                        style: TextButton.styleFrom(
+                          foregroundColor: _primaryColor,
+                        ),
                         child: const Text(
                           "Login",
                           style: TextStyle(
-                            color: Color(0xFF5A3DF0),
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),

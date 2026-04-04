@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
 import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/DocumentViewerScreen.dart';
@@ -183,9 +184,34 @@ class SuggestionDetailScreen extends StatelessWidget {
   }
 
   Future<void> _showAiSummary(BuildContext context) async {
-    final s = suggestion;
+    final authService = AuthService();
+    final loggedIn = await authService.isLoggedIn();
+    if (!loggedIn) {
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(children: [Icon(Icons.lock_outline, color: Color(0xFF7C3AED)), SizedBox(width: 8), Text('Login Required')]),
+          content: const Text('You need to login first to use AI Summarize.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              child: const Text('Login', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
 
     // Show loading dialog
+    if (!context.mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -208,80 +234,224 @@ class SuggestionDetailScreen extends StatelessWidget {
       ),
     );
 
-    // Simulate AI processing
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!context.mounted) return;
-    Navigator.pop(context);
-
-    // Build summary
-    final summary = StringBuffer();
-    summary.writeln('📘 Course: ${s.courseName} (${s.courseCode})');
-    summary.writeln('');
-    summary.writeln('📝 Exam Type: ${s.examType}');
-    summary.writeln('🏫 Dept: ${s.dept} | Intake: ${s.intake} | Sec: ${s.section}');
-    summary.writeln('');
-    summary.writeln('── Summary ──');
-    summary.writeln('');
-    if (s.description.isNotEmpty) {
-      summary.writeln('This is a ${s.examType} exam suggestion for "${s.courseName}" (${s.courseCode}). '
-          'It targets students in ${s.dept}, Intake ${s.intake}, Section ${s.section}.');
-      summary.writeln('');
-      summary.writeln('Description: ${s.description}');
-    } else {
-      summary.writeln('This is a ${s.examType} exam suggestion for "${s.courseName}" (${s.courseCode}). '
-          'Targeted at ${s.dept} students, Intake ${s.intake}, Section ${s.section}. '
-          'No additional description was provided.');
-    }
-    summary.writeln('');
-    summary.writeln('⭐ Rating: ${s.stars} stars');
-    summary.writeln('👤 Uploaded by: ${s.uploadedBy.name}');
-
-    if (!context.mounted) return;
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.auto_awesome, color: Color(0xFF7C3AED), size: 24),
-            SizedBox(width: 10),
-            Text('AI Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          ],
+    try {
+      final cookie = await authService.getToken();
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
         ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+      );
+      final response = await dio.post(
+        'https://sdp-3-backend.vercel.app/api/suggestions/ai',
+        data: {'id': suggestion.id},
+        options: Options(
+          headers: {
+            if (cookie != null) 'Cookie': cookie,
+          },
+        ),
+      );
+
+      if (!context.mounted) return;
+      Navigator.pop(context); // close loading
+
+      final data = response.data;
+      String summaryText = '';
+      if (data is Map) {
+        summaryText = (data['result'] ?? data['summary'] ?? data['message'] ?? '').toString().trim();
+      } else {
+        summaryText = data.toString().trim();
+      }
+
+      if (summaryText.isEmpty) {
+        summaryText = 'No summary available for this suggestion.';
+      }
+
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F0FF),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.2)),
-                ),
-                child: Text(
-                  summary.toString(),
-                  style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF374151)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '⚡ Generated by AI • May not be fully accurate',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
+              Icon(Icons.auto_awesome, color: Color(0xFF7C3AED), size: 24),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text('AI Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: Color(0xFF7C3AED), fontWeight: FontWeight.w600)),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Course header
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${suggestion.courseName} (${suggestion.courseCode})',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF7C3AED),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Summary paragraph
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: SelectableText(
+                    summaryText,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.7,
+                      color: Color(0xFF374151),
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '⚡ Generated by AI • May not be fully accurate',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Close', style: TextStyle(color: Color(0xFF7C3AED), fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+      );
+    } on DioException catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context); // close loading
+
+      String errorMsg = 'AI summarization failed.';
+      String errorDetail = '';
+      if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
+        errorMsg = 'Request timed out';
+        errorDetail = 'The AI server took too long to respond. Please try again.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMsg = 'Connection error';
+        errorDetail = 'Please check your internet connection and try again.';
+      } else if (e.response != null && e.response!.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          errorMsg = data['message'];
+        }
+        if (e.response!.statusCode == 401) {
+          errorDetail = 'Your session may have expired. Please login again.';
+        } else if (e.response!.statusCode == 429) {
+          errorDetail = 'Too many requests. Please wait a moment and try again.';
+        } else {
+          errorDetail = 'Server returned status ${e.response!.statusCode}.';
+        }
+      }
+
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.redAccent, size: 24),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(errorMsg, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (errorDetail.isNotEmpty)
+                Text(
+                  errorDetail,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showAiSummary(context);
+              },
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context); // close loading
+
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 24),
+              SizedBox(width: 10),
+              Text('Something went wrong', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Close', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showAiSummary(context);
+              },
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }

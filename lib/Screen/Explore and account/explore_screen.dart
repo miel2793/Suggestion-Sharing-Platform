@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:dio/dio.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/UploadScreen.dart';
@@ -33,6 +34,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _section = '';
 
   String? _errorMessage;
+  final Set<String> _votedIds = {};
 
   // Professional solid color palette
   static const _primaryColor = Color(0xFF1E88E5);
@@ -91,6 +93,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               s.courseCode.toLowerCase().contains(query);
         }).toList();
       }
+      _sortByStars();
     });
   }
 
@@ -122,6 +125,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       setState(() {
         _allSuggestions = suggestions;
         _filteredSuggestions = List.from(suggestions);
+        _sortByStars();
         _isLoading = false;
       });
     } catch (e) {
@@ -130,6 +134,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  /// Sort both lists by stars descending (highest votes first)
+  void _sortByStars() {
+    _allSuggestions.sort((a, b) => b.stars.compareTo(a.stars));
+    _filteredSuggestions.sort((a, b) => b.stars.compareTo(a.stars));
   }
 
   void _showLoginDialog() {
@@ -165,6 +175,114 @@ class _ExploreScreenState extends State<ExploreScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleVote(Suggestion suggestion) async {
+    final loggedIn = await _authService.isLoggedIn();
+    if (!loggedIn) {
+      if (!mounted) return;
+      _showLoginDialog();
+      return;
+    }
+
+    try {
+      final cookie = await _authService.getToken();
+      final dio = Dio();
+      final response = await dio.post(
+        'https://sdp-3-backend.vercel.app/api/suggestions/${suggestion.id}/vote',
+        options: Options(
+          headers: {
+            if (cookie != null) 'Cookie': cookie,
+          },
+        ),
+      );
+
+      if (!mounted) return;
+
+      final data = response.data;
+      final message = data is Map && data.containsKey('message')
+          ? data['message']
+          : 'Vote submitted!';
+
+      // Update the star count locally if the server returns it
+      if (data is Map && data.containsKey('stars')) {
+        setState(() {
+          final index = _allSuggestions.indexWhere((s) => s.id == suggestion.id);
+          if (index != -1) {
+            final old = _allSuggestions[index];
+            final updated = Suggestion(
+              id: old.id,
+              courseCode: old.courseCode,
+              courseName: old.courseName,
+              dept: old.dept,
+              intake: old.intake,
+              section: old.section,
+              examType: old.examType,
+              description: old.description,
+              attachmentUrl: old.attachmentUrl,
+              stars: data['stars'] is int ? data['stars'] : old.stars,
+              uploadedBy: old.uploadedBy,
+              createdAt: old.createdAt,
+              updatedAt: old.updatedAt,
+            );
+            _allSuggestions[index] = updated;
+            // Also update filtered list
+            final fIndex = _filteredSuggestions.indexWhere((s) => s.id == suggestion.id);
+            if (fIndex != -1) _filteredSuggestions[fIndex] = updated;
+          }
+        });
+      }
+
+      // Mark as voted & re-sort
+      setState(() {
+        _votedIds.add(suggestion.id);
+        _sortByStars();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text(message.toString())),
+            ],
+          ),
+          backgroundColor: _successColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    } on DioException catch (e) {
+      if (!mounted) return;
+      String errorMsg = 'Failed to vote. Try again.';
+      if (e.response != null && e.response!.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          errorMsg = data['message'];
+        }
+      }
+      // If already voted, mark it
+      if (errorMsg.toLowerCase().contains('already')) {
+        setState(() => _votedIds.add(suggestion.id));
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text(errorMsg)),
+            ],
+          ),
+          backgroundColor: _voteColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
   }
 
   void _showFaqDialog() {
@@ -405,15 +523,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       Text('${suggestion.stars}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(width: 12),
                       InkWell(
-                        onTap: () => debugPrint('Vote clicked'),
+                        onTap: _votedIds.contains(suggestion.id)
+                            ? null
+                            : () => _handleVote(suggestion),
                         borderRadius: BorderRadius.circular(30),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
-                            color: _voteColor,
+                            color: _votedIds.contains(suggestion.id)
+                                ? Colors.grey.shade400
+                                : _voteColor,
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          child: const Text('Vote', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                          child: Text(
+                            _votedIds.contains(suggestion.id) ? 'Voted ✓' : 'Vote',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
                         ),
                       ),
                     ],
