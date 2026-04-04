@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
+import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/EditProfileScreen.dart';
 import 'user_profile_model.dart';
 
 class Profile extends StatefulWidget {
@@ -37,6 +38,30 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> _navigateToEditProfile() async {
+    final p = _profile!;
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditProfileScreen(
+          name: p.name,
+          dept: p.dept,
+          intake: p.intake,
+          section: p.section,
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      // Re-fetch profile from backend to get latest data
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+      _fetchProfile();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,6 +74,13 @@ class _ProfileState extends State<Profile> {
         backgroundColor: Color(0xFF42A5F5),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
+        actions: [
+          if (_profile != null)
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: _navigateToEditProfile,
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(
