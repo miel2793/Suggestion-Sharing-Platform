@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/Profile.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/SettingsScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/AboutHelpScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/ReportFeedbackScreen.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/UploadScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/AppDrawer.dart';
+import 'AppDrawer.dart';
 import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
 import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/EditProfileScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/Splash_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../log and reg/login_screen.dart';
 import 'Servies/explore_suggestion_services.dart';
@@ -36,7 +31,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _dept = '';
   String _intake = '';
   String _section = '';
-  dynamic _pickedImage;
+
   String? _errorMessage;
 
   // Professional solid color palette
@@ -117,7 +112,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
         _dept = result['dept'] ?? _dept;
         _intake = result['intake'] ?? _intake;
         _section = result['section'] ?? _section;
-        _pickedImage = result['image'];
       });
     }
   }
@@ -240,14 +234,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor: _backgroundLight,
-          drawer: _isLoggedIn
-              ? AppDrawer(
-            userName: _userName,
-            isLoggedIn: _isLoggedIn,
-            onFaqTap: _showFaqDialog,
-            onEditProfile: _navigateToEditProfile,
-          )
-              : null,
+          drawer: const AppDrawer(),
           body: Builder(
             builder: (scaffoldContext) => Column(
               children: [
@@ -277,10 +264,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
             onPressed: () async {
               final loggedIn = await _authService.isLoggedIn();
               if (!loggedIn) {
-                if (!mounted) return;
+                if (!context.mounted) return;
                 _showLoginDialog();
                 return;
               }
+              if (!context.mounted) return;
               final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const UploadScreen()));
               if (result == true && mounted) {
                 setState(() {
@@ -328,12 +316,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
       color: _primaryColor,
       child: Row(
         children: [
-          if (_isLoggedIn)
-            IconButton(
-              onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
-              icon: const Icon(Icons.menu, color: Colors.white, size: 28),
-            )
-          else
+          IconButton(
+            onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+            icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+          ),
+          if (!_isLoggedIn)
             GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
               child: const Column(
@@ -353,7 +340,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 color: _surfaceColor,
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
                 ],
               ),
               child: TextField(
@@ -389,7 +376,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           color: _surfaceColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
           ],
         ),
         child: Padding(
@@ -403,7 +390,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: _primaryColor.withOpacity(0.1),
+                      color: _primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Text(
@@ -596,7 +583,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.search_off, size: 72, color: _textSecondary.withOpacity(0.6)),
+          Icon(Icons.search_off, size: 72, color: _textSecondary.withValues(alpha: 0.6)),
           const SizedBox(height: 16),
           Text('No suggestions found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: _textSecondary)),
           const SizedBox(height: 8),

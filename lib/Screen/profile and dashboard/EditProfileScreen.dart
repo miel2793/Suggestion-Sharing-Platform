@@ -215,7 +215,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         children: [
                           CircleAvatar(
                             radius: 55,
-                            backgroundColor: _primaryColor.withOpacity(0.1),
+                            backgroundColor: _primaryColor.withValues(alpha: 0.1),
                             backgroundImage: _pickedImage != null
                                 ? FileImage(_pickedImage!)
                                 : null,
@@ -319,7 +319,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primaryColor,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: _primaryColor.withOpacity(0.5),
+                    disabledBackgroundColor: _primaryColor.withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
