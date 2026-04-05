@@ -102,38 +102,47 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // App Logo / Icon
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: _primaryColor,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Icon(
-                      Icons.lightbulb_outline,
-                      color: Colors.white,
-                      size: 42,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    "Welcome Back",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: _textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Sign in to continue",
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: _textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
+                  // App Logo / Header
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool isTiny = MediaQuery.of(context).size.height < 600;
+                      return Column(
+                        children: [
+                          Container(
+                            width: isTiny ? 60 : 80,
+                            height: isTiny ? 60 : 80,
+                            decoration: BoxDecoration(
+                              color: _primaryColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              Icons.lightbulb_outline,
+                              color: Colors.white,
+                              size: isTiny ? 32 : 42,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            "Welcome Back",
+                            style: TextStyle(
+                              fontSize: isTiny ? 24 : 28,
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Sign in to continue",
+                            style: TextStyle(
+                              fontSize: isTiny ? 14 : 15,
+                              color: _textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      );
+                    }
                   ),
                   const SizedBox(height: 40),
 
@@ -287,11 +296,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        "Don't have an account? ",
-                        style: TextStyle(
-                          color: _textSecondary,
-                          fontSize: 14,
+                      Flexible(
+                        child: Text(
+                          "Don't have an account? ",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: _textSecondary,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                       TextButton(
@@ -303,6 +315,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         style: TextButton.styleFrom(
                           foregroundColor: _primaryColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                         ),
                         child: const Text(
                           "Sign Up",

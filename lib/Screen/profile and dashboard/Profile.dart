@@ -18,7 +18,6 @@ class _ProfileState extends State<Profile> {
   bool _isLoading = true;
   String? _error;
 
-  // Professional solid color palette
   static const _primaryColor = Color(0xFF1E88E5);
   static const _surfaceColor = Colors.white;
   static const _backgroundLight = Color(0xFFF8FAFF);
@@ -38,7 +37,6 @@ class _ProfileState extends State<Profile> {
 
   Future<void> _fetchProfile() async {
     try {
-      // Force refresh to get latest upload stats and status
       final data = await _authService.getProfile(forceRefresh: true);
       if (mounted) {
         setState(() {
@@ -82,41 +80,23 @@ class _ProfileState extends State<Profile> {
     return Scaffold(
       backgroundColor: _backgroundLight,
       appBar: AppBar(
-        title: const Text(
-          'My Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
-        ),
+        title: const Text('My Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20)),
         backgroundColor: _primaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
-        centerTitle: false,
         actions: [
           if (_profile != null)
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.white),
-              onPressed: _navigateToEditProfile,
-              tooltip: 'Edit Profile',
-            ),
+            IconButton(icon: const Icon(Icons.edit), onPressed: _navigateToEditProfile),
         ],
       ),
       body: _isLoading
-          ? const Center(
-        child: CircularProgressIndicator(
-          color: _primaryColor,
-          strokeWidth: 3,
-        ),
-      )
+          ? const Center(child: CircularProgressIndicator(color: _primaryColor))
           : _error != null
           ? _buildErrorState()
           : RefreshIndicator(
         onRefresh: _fetchProfile,
         color: _primaryColor,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
@@ -134,126 +114,52 @@ class _ProfileState extends State<Profile> {
 
   Widget _buildErrorState() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: _errorColor),
-            const SizedBox(height: 16),
-            Text(
-              _error!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: _errorColor, fontSize: 14),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _isLoading = true;
-                  _error = null;
-                });
-                _fetchProfile();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryColor,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, size: 64, color: _errorColor),
+          const SizedBox(height: 16),
+          Text(_error!, style: const TextStyle(color: _errorColor)),
+          const SizedBox(height: 20),
+          ElevatedButton(onPressed: _fetchProfile, child: const Text('Retry')),
+        ],
       ),
     );
   }
 
-  // ─────────────────── PROFILE CARD ───────────────────
   Widget _buildProfileCard() {
     final p = _profile!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: _surfaceColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(color: _surfaceColor, borderRadius: BorderRadius.circular(24)),
       child: Column(
         children: [
-          // Avatar with solid background
           CircleAvatar(
             radius: 48,
             backgroundColor: _primaryColor,
             backgroundImage: p.imgUrl.isNotEmpty ? NetworkImage(p.imgUrl) : null,
-            onBackgroundImageError: p.imgUrl.isNotEmpty ? (_, __) {} : null,
-            child: p.imgUrl.isEmpty
-                ? const Icon(Icons.person, color: Colors.white, size: 52)
-                : null,
+            child: p.imgUrl.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 52) : null,
           ),
           const SizedBox(height: 16),
-
-          // Name
           Text(
             p.name,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: _primaryColor,
-            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _primaryColor),
           ),
-          const SizedBox(height: 6),
-
-          // Email
           Text(
             p.email,
-            style: TextStyle(
-              fontSize: 14,
-              color: _textSecondary,
-            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 14, color: _textSecondary),
           ),
-          const SizedBox(height: 8),
-
-          // Role badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: _primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Text(
-              p.role.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: _primaryColor,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-          const Divider(height: 1, color: _borderColor),
           const SizedBox(height: 16),
-
-          // Info rows (solid icons and text)
-          _infoRow(Icons.school_outlined, 'Department', p.dept),
+          _infoRow(Icons.school, 'Dept', p.dept),
           const SizedBox(height: 12),
-          _infoRow(Icons.numbers_outlined, 'Intake', p.intake),
+          _infoRow(Icons.numbers, 'Intake', p.intake),
           const SizedBox(height: 12),
-          _infoRow(Icons.group_outlined, 'Section', p.section),
-          const SizedBox(height: 12),
-          _infoRow(Icons.upload_file_outlined, 'Total Uploads', '${p.uploads.length}'),
-          const SizedBox(height: 12),
-          _infoRow(
-            Icons.calendar_today_outlined,
-            'Joined',
-            '${p.createdAt.day}/${p.createdAt.month}/${p.createdAt.year}',
-          ),
+          _infoRow(Icons.group, 'Section', p.section),
         ],
       ),
     );
@@ -262,222 +168,93 @@ class _ProfileState extends State<Profile> {
   Widget _infoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, color: _primaryColor, size: 22),
-        const SizedBox(width: 14),
-        Text(
-          label,
-          style: const TextStyle(
-            color: _textSecondary,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-            color: _textPrimary,
-          ),
-        ),
+        Icon(icon, color: _primaryColor, size: 20),
+        const SizedBox(width: 12),
+        Expanded(flex: 2, child: Text(label, style: const TextStyle(color: _textSecondary))),
+        const SizedBox(width: 8),
+        Expanded(flex: 3, child: Text(value, textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.bold))),
       ],
     );
   }
 
-  // ─────────────────── STATISTICS SECTION ───────────────────
   Widget _buildStatsSection() {
     if (_profile == null) return const SizedBox.shrink();
-
     final uploads = _profile!.uploads;
     final int total = uploads.length;
     final int approved = uploads.where((u) => u.status.toLowerCase() == 'approved').length;
     final int pending = uploads.where((u) => u.status.toLowerCase() == 'pending').length;
     final int rejected = total - approved - pending;
 
-    // Data for the pie chart (fallback to 100% empty if no uploads)
-    final Map<String, double> dataMap = total > 0
-        ? {
-            "Approved": approved.toDouble(),
-            "Pending": pending.toDouble(),
-            "Rejected": rejected.toDouble(),
-          }
-        : {
-            "No Data": 1,
-          };
-
-    final List<Color> colorList = total > 0
-        ? [_successColor, _warningColor, _errorColor]
-        : [Colors.grey.shade300];
+    final dataMap = total > 0
+        ? {"Appr": approved.toDouble(), "Pend": pending.toDouble(), "Rej": rejected.toDouble()}
+        : {"No Data": 1.0};
 
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: _surfaceColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Upload Statistics',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: _textPrimary,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            height: 180, // Added fixed height to prevent layout collapse
-            child: Row(
-              children: [
-                // Pie Chart
-                Expanded(
-                  flex: 1,
-                  child: PieChart(
-                    dataMap: dataMap,
-                    animationDuration: const Duration(milliseconds: 800),
-                    chartLegendSpacing: 0,
-                    chartRadius: 120,
-                    colorList: colorList,
-                    initialAngleInDegree: 0,
-                    chartType: ChartType.ring, // Changed to ring for better look
-                    centerText: total > 0 ? "TOTAL\n$total" : "EMPTY",
-                    centerTextStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: _textPrimary,
-                    ),
-                    ringStrokeWidth: 16,
-                    legendOptions: const LegendOptions(showLegends: false),
-                    chartValuesOptions: ChartValuesOptions(
-                      showChartValueBackground: false,
-                      showChartValues: total > 0,
-                      showChartValuesInPercentage: false,
-                      showChartValuesOutside: total > 0,
-                      decimalPlaces: 0,
-                      chartValueStyle: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: _textPrimary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 24),
-                // Legend
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildLegendItem('Approved', approved, _successColor),
-                      const SizedBox(height: 14),
-                      _buildLegendItem('Pending', pending, _warningColor),
-                      const SizedBox(height: 14),
-                      _buildLegendItem('Rejected', rejected, _errorColor),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      decoration: BoxDecoration(color: _surfaceColor, borderRadius: BorderRadius.circular(24)),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final bool isSmall = constraints.maxWidth < 320;
+        return Column(
+          children: [
+            const Text('Upload Statistics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            isSmall
+                ? Column(children: [_chart(dataMap, total), const SizedBox(height: 20), _legend(approved, pending, rejected)])
+                : Row(children: [Expanded(child: _chart(dataMap, total)), const SizedBox(width: 20), Expanded(child: _legend(approved, pending, rejected))]),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _chart(Map<String, double> data, int total) {
+    return SizedBox(
+      height: 120,
+      child: PieChart(
+        dataMap: data,
+        chartRadius: 100,
+        colorList: total > 0 ? [_successColor, _warningColor, _errorColor] : [Colors.grey],
+        chartType: ChartType.ring,
+        centerText: "$total",
+        legendOptions: const LegendOptions(showLegends: false),
+        chartValuesOptions: const ChartValuesOptions(showChartValues: false),
       ),
     );
   }
 
-  Widget _buildLegendItem(String label, int count, Color color) {
-    return Row(
+  Widget _legend(int a, int p, int r) {
+    return Column(
       children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: _textSecondary,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          '$count',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: _textPrimary,
-          ),
-        ),
+        _legItem('Approved', a, _successColor),
+        _legItem('Pending', p, _warningColor),
+        _legItem('Rejected', r, _errorColor),
       ],
     );
   }
 
-  // ─────────────────── UPLOADS SECTION ───────────────────
+  Widget _legItem(String l, int c, Color clr) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(width: 10, height: 10, decoration: BoxDecoration(color: clr, shape: BoxShape.circle)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(l, style: const TextStyle(fontSize: 12))),
+          Text("$c", style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildUploadsSection() {
     final uploads = _profile!.uploads;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'My Uploads',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: _textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-
+        const Text('My Uploads', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
         if (uploads.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: _surfaceColor,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _borderColor, width: 1),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.upload_file_outlined, size: 48, color: _textSecondary),
-                const SizedBox(height: 12),
-                Text(
-                  'No uploads yet',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: _textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Your uploaded suggestions will appear here',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: _textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          )
+          const Center(child: Text('No uploads yet'))
         else
           ListView.separated(
             shrinkWrap: true,
@@ -491,156 +268,55 @@ class _ProfileState extends State<Profile> {
   }
 
   Widget _buildUploadCard(UserUpload upload) {
-    Color statusColor;
-    String statusText;
-    switch (upload.status.toLowerCase()) {
-      case 'approved':
-        statusColor = _successColor;
-        statusText = 'Approved';
-        break;
-      case 'pending':
-        statusColor = _warningColor;
-        statusText = 'Pending';
-        break;
-      default:
-        statusColor = _errorColor;
-        statusText = 'Rejected';
-    }
-
     return Container(
-      decoration: BoxDecoration(
-        color: _surfaceColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: _surfaceColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(upload.courseCode, style: const TextStyle(fontWeight: FontWeight.bold, color: _primaryColor)),
+              StatusBadge(status: upload.status),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            upload.courseName,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(Icons.star, color: _starColor, size: 16),
+              const SizedBox(width: 4),
+              Text('${upload.stars} stars'),
+              const Spacer(),
+              Text('${upload.createdAt.day}/${upload.createdAt.month}/${upload.createdAt.year}', style: const TextStyle(fontSize: 12, color: _textSecondary)),
+            ],
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            // Optionally navigate to detail view
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Text(
-                        upload.courseCode,
-                        style: TextStyle(
-                          color: _primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Text(
-                        statusText,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  upload.courseName,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: _textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      upload.examType,
-                      style: TextStyle(
-                        color: upload.examType == 'Final' ? _successColor : _warningColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                    Text(
-                      '${upload.dept} • Sec ${upload.section}',
-                      style: TextStyle(
-                        color: _textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  upload.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _textSecondary,
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Divider(height: 1, color: _borderColor),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.star, color: _starColor, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${upload.stars}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: _textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      '${upload.createdAt.day}/${upload.createdAt.month}/${upload.createdAt.year}',
-                      style: TextStyle(
-                        color: _textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    );
+  }
+}
+
+class StatusBadge extends StatelessWidget {
+  final String status;
+  const StatusBadge({super.key, required this.status});
+  @override
+  Widget build(BuildContext context) {
+    Color c = Colors.grey;
+    if (status.toLowerCase() == 'approved') c = const Color(0xFF10B981);
+    if (status.toLowerCase() == 'pending') c = const Color(0xFFF59E0B);
+    if (status.toLowerCase() == 'rejected') c = const Color(0xFFEF4444);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: c.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+      child: Text(status.toUpperCase(), style: TextStyle(color: c, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 }

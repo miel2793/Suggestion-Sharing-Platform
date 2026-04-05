@@ -19,9 +19,11 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController section = TextEditingController();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
+  final TextEditingController confirmPassword = TextEditingController();
 
   bool _isLoading = false;
   bool _isPasswordHidden = true;
+  bool _isConfirmPasswordHidden = true;
 
   // Professional solid color palette
   static const _primaryColor = Color(0xFF1E88E5);
@@ -42,6 +44,7 @@ class _SignupScreenState extends State<SignupScreen> {
     section.dispose();
     email.dispose();
     password.dispose();
+    confirmPassword.dispose();
     super.dispose();
   }
 
@@ -142,38 +145,47 @@ class _SignupScreenState extends State<SignupScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // App Logo / Icon
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: _primaryColor,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Icon(
-                      Icons.person_add_alt_1,
-                      color: Colors.white,
-                      size: 42,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    "Create Account",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: _textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Join the community and share suggestions",
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: _textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
+                  // App Logo / Header
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool isTiny = MediaQuery.of(context).size.height < 650;
+                      return Column(
+                        children: [
+                          Container(
+                            width: isTiny ? 60 : 80,
+                            height: isTiny ? 60 : 80,
+                            decoration: BoxDecoration(
+                              color: _primaryColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              Icons.person_add_alt_1,
+                              color: Colors.white,
+                              size: isTiny ? 32 : 42,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            "Create Account",
+                            style: TextStyle(
+                              fontSize: isTiny ? 24 : 28,
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Join the community!",
+                            style: TextStyle(
+                              fontSize: isTiny ? 13 : 15,
+                              color: _textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      );
+                    }
                   ),
                   const SizedBox(height: 32),
 
@@ -257,6 +269,31 @@ class _SignupScreenState extends State<SignupScreen> {
                       },
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  _buildInputField(
+                    controller: confirmPassword,
+                    hint: "Confirm Password",
+                    obscure: _isConfirmPasswordHidden,
+                    validator: (v) {
+                      if (v!.isEmpty) return "Please confirm your password";
+                      if (v != password.text) return "Passwords do not match";
+                      return null;
+                    },
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isConfirmPasswordHidden
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: _textSecondary,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isConfirmPasswordHidden = !_isConfirmPasswordHidden;
+                        });
+                      },
+                    ),
+                  ),
 
                   const SizedBox(height: 32),
 
@@ -299,11 +336,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        "Already have an account? ",
-                        style: TextStyle(
-                          color: _textSecondary,
-                          fontSize: 14,
+                      Flexible(
+                        child: Text(
+                          "Already have an account? ",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: _textSecondary,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                       TextButton(
@@ -312,6 +352,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         },
                         style: TextButton.styleFrom(
                           foregroundColor: _primaryColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                         ),
                         child: const Text(
                           "Login",

@@ -199,6 +199,46 @@ class AuthService {
     }
   }
 
+  // ─── CHANGE PASSWORD ──────────────────────────────────────────────
+
+  /// Changes the user's password.
+  Future<Map<String, dynamic>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final cookie = await getToken();
+      final response = await _dio.post(
+        "/auth/change-password",
+        data: {
+          "oldPassword": oldPassword,
+          "newPassword": newPassword,
+          "confirmPassword": confirmPassword,
+        },
+        options: Options(
+          headers: {
+            if (cookie != null) "Cookie": cookie,
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        throw Exception("Failed to change password.");
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          throw Exception(data['message']);
+        }
+      }
+      throw Exception("Network error. Please check your connection.");
+    }
+  }
+
   // ─── TOKEN / SESSION HELPERS ──────────────────────────────────────
 
   Future<void> _saveCookie(String cookie) async {
@@ -209,7 +249,13 @@ class AuthService {
   /// Returns the saved auth cookie, or `null` if not logged in.
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    final cookie = prefs.getString(_tokenKey);
+    if (cookie != null && cookie.isNotEmpty) {
+      // Return only the key=value pair (e.g. auth_token=...)
+      // to avoid sending "Path=/" or "HttpOnly" back to the server
+      return cookie.split(';').first.trim();
+    }
+    return null;
   }
 
   /// Returns `true` if the user has a saved auth cookie.

@@ -213,6 +213,8 @@ class _UploadScreenState extends State<UploadScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       if (_pickedFile != null) ...[
                         const SizedBox(height: 6),
@@ -297,8 +299,9 @@ class _UploadScreenState extends State<UploadScreen> {
                     labelText: 'Exam Type',
                     labelStyle: TextStyle(color: _textSecondary, fontSize: 14),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
+                  isExpanded: true,
                   dropdownColor: _surfaceColor,
                   items: _examTypes
                       .map((type) => DropdownMenuItem(

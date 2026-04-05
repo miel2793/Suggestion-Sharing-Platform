@@ -274,6 +274,8 @@ class _AppDrawerState extends State<AppDrawer> {
           const SizedBox(height: 16),
           Text(
             _userName,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -285,6 +287,8 @@ class _AppDrawerState extends State<AppDrawer> {
           if (_isLoggedIn && _userEmail.isNotEmpty)
             Text(
               _userEmail,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
               style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 13,
@@ -293,6 +297,8 @@ class _AppDrawerState extends State<AppDrawer> {
           else if (!_isLoggedIn)
             const Text(
               'Sign in to access more features',
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
               style: TextStyle(
                 color: Colors.white70,
                 fontSize: 13,
@@ -303,14 +309,16 @@ class _AppDrawerState extends State<AppDrawer> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15), // subtle solid overlay, not a gradient
+                color: Colors.white.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Text(
                 '$_userDept  •  Intake $_userIntake  •  Sec $_userSection',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w500,
                 ),
               ),

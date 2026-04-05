@@ -43,22 +43,30 @@ class SuggestionDetailScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                        decoration: BoxDecoration(color: _primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                        child: Text(s.courseCode, style: const TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 14)),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(color: _primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                          child: Text(s.courseCode, overflow: TextOverflow.ellipsis, style: const TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 20),
+                          const Icon(Icons.star, color: Colors.amber, size: 18),
                           const SizedBox(width: 4),
-                          Text('${s.stars}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+                          Text('${s.stars}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87)),
                         ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Text(s.courseName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text(
+                    s.courseName,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                    softWrap: true,
+                  ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -92,12 +100,14 @@ class SuggestionDetailScreen extends StatelessWidget {
                     children: [
                       CircleAvatar(radius: 18, backgroundColor: _primaryColor.withValues(alpha: 0.1), child: const Icon(Icons.person, color: _primaryColor, size: 20)),
                       const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(s.uploadedBy.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
-                          Text(s.uploadedBy.email, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                        ],
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s.uploadedBy.name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
+                            Text(s.uploadedBy.email, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -141,9 +151,15 @@ class SuggestionDetailScreen extends StatelessWidget {
       children: [
         Icon(icon, color: _primaryColor, size: 18),
         const SizedBox(width: 10),
-        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-        const Spacer(),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+        Expanded(
+          flex: 2,
+          child: Text(label, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 3,
+          child: Text(value, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+        ),
       ],
     );
   }
