@@ -104,10 +104,66 @@ class _ProfileState extends State<Profile> {
               const SizedBox(height: 24),
               _buildStatsSection(),
               const SizedBox(height: 24),
+              _buildTotalStarsHeader(),
+              const SizedBox(height: 12),
               _buildUploadsSection(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTotalStarsHeader() {
+    if (_profile == null) return const SizedBox.shrink();
+    final totalStars = _profile!.uploads.fold(0, (sum, u) => sum + u.stars);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: _primaryColor.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Total Stars Received',
+                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Community Impact',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Icon(Icons.stars, color: Color(0xFFFBBF24), size: 32),
+              const SizedBox(width: 8),
+              Text(
+                '$totalStars',
+                style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -247,14 +303,36 @@ class _ProfileState extends State<Profile> {
   }
 
   Widget _buildUploadsSection() {
-    final uploads = _profile!.uploads;
+    if (_profile == null) return const SizedBox.shrink();
+
+    // Sort uploads by stars (highest first)
+    final uploads = List<UserUpload>.from(_profile!.uploads);
+    uploads.sort((a, b) => b.stars.compareTo(a.stars));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('My Uploads', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('My Uploads', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'Sorted by Stars',
+              style: TextStyle(fontSize: 12, color: _textSecondary, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         if (uploads.isEmpty)
-          const Center(child: Text('No uploads yet'))
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: _surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Center(child: Text('No uploads yet', style: TextStyle(color: _textSecondary))),
+          )
         else
           ListView.separated(
             shrinkWrap: true,

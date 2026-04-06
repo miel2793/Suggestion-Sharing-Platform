@@ -6,6 +6,7 @@ import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/Edi
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/SettingsScreen.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/AboutHelpScreen.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/ReportFeedbackScreen.dart';
+import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/LeaderboardScreen.dart';
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
@@ -100,11 +101,23 @@ class _AppDrawerState extends State<AppDrawer> {
                 padding: EdgeInsets.zero,
                 children: [
                   const SizedBox(height: 8),
-                  _buildSectionLabel('MAIN'),
+                  _buildSectionLabel(''),
                   _buildMenuItem(
                     icon: Icons.home_rounded,
                     title: 'Home',
                     onTap: () => Navigator.pop(context),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.emoji_events_rounded,
+                    title: 'Leaderboard',
+                    subtitle: 'Top contributors ranking',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                      );
+                    },
                   ),
                   if (_isLoggedIn) ...[
                     _buildMenuItem(

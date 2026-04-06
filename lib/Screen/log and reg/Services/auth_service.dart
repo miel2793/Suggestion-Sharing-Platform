@@ -111,7 +111,7 @@ class AuthService {
   Future<Map<String, dynamic>> getProfile({bool forceRefresh = false}) async {
     // If not forced and we have cache, return it immediately
     if (!forceRefresh && _profileCache != null) {
-      return _profileCache!;
+       return _profileCache!;
     }
 
     // prevent duplicate simultaneous requests
