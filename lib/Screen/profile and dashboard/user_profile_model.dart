@@ -5,6 +5,7 @@ class UserProfile {
   final String dept;
   final String intake;
   final String section;
+  final String imgUrl;
   final List<UserUpload> uploads;
   final DateTime createdAt;
 
@@ -15,11 +16,13 @@ class UserProfile {
     required this.dept,
     required this.intake,
     required this.section,
+    required this.imgUrl,
     required this.uploads,
     required this.createdAt,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
+    final uploadsJson = json['uploads'] ?? json['suggestions'];
     return UserProfile(
       name: json['name'] ?? '',
       email: json['email'] ?? '',
@@ -27,11 +30,14 @@ class UserProfile {
       dept: json['dept'] ?? '',
       intake: json['intake'] ?? '',
       section: json['section'] ?? '',
-      uploads: (json['uploads'] as List<dynamic>?)
+      imgUrl: json['img_url'] ?? '',
+      uploads: (uploadsJson as List<dynamic>?)
               ?.map((e) => UserUpload.fromJson(e))
               .toList() ??
           [],
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
     );
   }
 }

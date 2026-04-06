@@ -26,6 +26,18 @@ class _UploadScreenState extends State<UploadScreen> {
 
   final List<String> _examTypes = ['Midterm', 'Final'];
 
+  // Professional solid color palette
+  static const _primaryColor = Color(0xFF1E88E5);
+  static const _surfaceColor = Colors.white;
+  static const _backgroundLight = Color(0xFFF8FAFF);
+  static const _textPrimary = Color(0xFF1F2937);
+  static const _textSecondary = Color(0xFF6B7280);
+  static const _borderColor = Color(0xFFE5E7EB);
+  static const _errorColor = Color(0xFFEF4444);
+  static const _successColor = Color(0xFF10B981);
+  static const _filePickerBorder = Color(0xFFE5E7EB);
+  static const _filePickerBorderSelected = Color(0xFF1E88E5);
+
   @override
   void dispose() {
     _courseCodeController.dispose();
@@ -53,9 +65,12 @@ class _UploadScreenState extends State<UploadScreen> {
 
     if (_pickedFile == null || _pickedFile!.path == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a file to upload.'),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: const Text('Please select a file to upload.'),
+          backgroundColor: _errorColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
         ),
       );
       return;
@@ -79,20 +94,26 @@ class _UploadScreenState extends State<UploadScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Suggestion uploaded successfully!'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text('Suggestion uploaded successfully!'),
+          backgroundColor: _successColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
         ),
       );
 
-      Navigator.pop(context, true); // Return true to indicate success
+      Navigator.pop(context, true);
     } on Exception catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red,
+          backgroundColor: _errorColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
         ),
       );
     } finally {
@@ -111,17 +132,19 @@ class _UploadScreenState extends State<UploadScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFEDE9FF),
+        color: _surfaceColor,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _borderColor, width: 1),
       ),
       child: TextFormField(
         controller: controller,
         keyboardType: type,
         maxLines: maxLines,
         validator: validator,
+        style: const TextStyle(fontSize: 15, color: _textPrimary),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Color(0xFF42A5F5), fontSize: 14),
+          labelStyle: const TextStyle(color: _textSecondary, fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
@@ -132,15 +155,20 @@ class _UploadScreenState extends State<UploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE3F2FD),
+      backgroundColor: _backgroundLight,
       appBar: AppBar(
         title: const Text(
           'Upload Suggestion',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
         ),
-        backgroundColor: Color(0xFF42A5F5),
+        backgroundColor: _primaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
+        centerTitle: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -149,21 +177,20 @@ class _UploadScreenState extends State<UploadScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── File Picker ──
+              // File picker card (solid design)
               GestureDetector(
                 onTap: _pickFile,
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    color: _surfaceColor,
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _pickedFile != null
-                          ? Color(0xFF42A5F5)
-                          : Colors.grey.shade300,
+                          ? _filePickerBorderSelected
+                          : _filePickerBorder,
                       width: 2,
-                      strokeAlign: BorderSide.strokeAlignInside,
                     ),
                   ),
                   child: Column(
@@ -172,67 +199,70 @@ class _UploadScreenState extends State<UploadScreen> {
                         _pickedFile != null
                             ? Icons.check_circle
                             : Icons.cloud_upload_outlined,
-                        color: _pickedFile != null
-                            ? Colors.green
-                            : Color(0xFF42A5F5),
-                        size: 48,
+                        color: _pickedFile != null ? _successColor : _primaryColor,
+                        size: 56,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Text(
                         _pickedFile != null
                             ? _pickedFile!.name
                             : 'Tap to select a file',
                         style: TextStyle(
-                          color: _pickedFile != null
-                              ? Colors.black87
-                              : Colors.grey[600],
-                          fontSize: 14,
+                          color: _pickedFile != null ? _textPrimary : _textSecondary,
+                          fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       if (_pickedFile != null) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
                           '${(_pickedFile!.size / 1024).toStringAsFixed(1)} KB',
-                          style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                          style: TextStyle(
+                            color: _textSecondary,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                       if (_pickedFile == null) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
                           'PDF, JPG, PNG, DOC',
-                          style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                          style: TextStyle(
+                            color: _textSecondary,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: 24),
 
-              const SizedBox(height: 20),
-
-              // ── Form Fields ──
+              // Form fields (solid white with border)
               _buildInputField(
                 controller: _courseCodeController,
                 label: 'Course Code (e.g. SWE 300)',
                 validator: (v) => v!.isEmpty ? 'Course code required' : null,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
               _buildInputField(
                 controller: _courseNameController,
                 label: 'Course Name',
                 validator: (v) => v!.isEmpty ? 'Course name required' : null,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
               _buildInputField(
                 controller: _deptController,
                 label: 'Department (e.g. CSE)',
                 validator: (v) => v!.isEmpty ? 'Department required' : null,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
               Row(
                 children: [
@@ -244,7 +274,7 @@ class _UploadScreenState extends State<UploadScreen> {
                       validator: (v) => v!.isEmpty ? 'Required' : null,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: _buildInputField(
                       controller: _sectionController,
@@ -254,29 +284,30 @@ class _UploadScreenState extends State<UploadScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
-              // Exam Type Dropdown
+              // Exam Type Dropdown (styled consistently)
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEDE9FF),
+                  color: _surfaceColor,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _borderColor, width: 1),
                 ),
                 child: DropdownButtonFormField<String>(
                   value: _selectedExamType,
                   decoration: const InputDecoration(
                     labelText: 'Exam Type',
-                    labelStyle: TextStyle(color: Color(0xFF42A5F5), fontSize: 14),
+                    labelStyle: TextStyle(color: _textSecondary, fontSize: 14),
                     border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
-                  dropdownColor: const Color(0xFFEDE9FF),
+                  isExpanded: true,
+                  dropdownColor: _surfaceColor,
                   items: _examTypes
                       .map((type) => DropdownMenuItem(
-                            value: type,
-                            child: Text(type),
-                          ))
+                    value: type,
+                    child: Text(type, style: const TextStyle(color: _textPrimary)),
+                  ))
                       .toList(),
                   onChanged: (value) {
                     if (value != null) {
@@ -285,7 +316,7 @@ class _UploadScreenState extends State<UploadScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
               _buildInputField(
                 controller: _descriptionController,
@@ -294,38 +325,38 @@ class _UploadScreenState extends State<UploadScreen> {
                 validator: (v) => v!.isEmpty ? 'Description required' : null,
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
-              // ── Upload Button ──
+              // Upload Button (solid, flat)
               SizedBox(
                 width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
+                height: 54,
+                child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleUpload,
-                  icon: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        )
-                      : const Icon(Icons.upload, color: Colors.white),
-                  label: Text(
-                    _isLoading ? 'Uploading...' : 'Upload Suggestion',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF42A5F5),
+                    backgroundColor: _primaryColor,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: _primaryColor.withOpacity(0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    elevation: 4,
+                    elevation: 0,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                      : const Text(
+                    'Upload Suggestion',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

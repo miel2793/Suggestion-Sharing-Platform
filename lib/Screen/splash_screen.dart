@@ -95,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     const SizedBox(height: 40),
                     // Title
                     const Text(
-                      'Suggestion Sharing\nPlatform',
+                      'Suggest Me',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFF1A1A2E),

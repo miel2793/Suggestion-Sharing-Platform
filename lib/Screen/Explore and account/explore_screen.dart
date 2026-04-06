@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:dio/dio.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
 import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/UploadScreen.dart';
@@ -33,6 +34,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _section = '';
 
   String? _errorMessage;
+  final Set<String> _votedIds = {};
 
   // Professional solid color palette
   static const _primaryColor = Color(0xFF1E88E5);
@@ -91,6 +93,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               s.courseCode.toLowerCase().contains(query);
         }).toList();
       }
+      _sortByStars();
     });
   }
 
@@ -122,6 +125,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       setState(() {
         _allSuggestions = suggestions;
         _filteredSuggestions = List.from(suggestions);
+        _sortByStars();
         _isLoading = false;
       });
     } catch (e) {
@@ -130,6 +134,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  /// Sort both lists by stars descending (highest votes first)
+  void _sortByStars() {
+    _allSuggestions.sort((a, b) => b.stars.compareTo(a.stars));
+    _filteredSuggestions.sort((a, b) => b.stars.compareTo(a.stars));
   }
 
   void _showLoginDialog() {
@@ -165,6 +175,114 @@ class _ExploreScreenState extends State<ExploreScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleVote(Suggestion suggestion) async {
+    final loggedIn = await _authService.isLoggedIn();
+    if (!loggedIn) {
+      if (!mounted) return;
+      _showLoginDialog();
+      return;
+    }
+
+    try {
+      final cookie = await _authService.getToken();
+      final dio = Dio();
+      final response = await dio.post(
+        'https://sdp-3-backend.vercel.app/api/suggestions/${suggestion.id}/vote',
+        options: Options(
+          headers: {
+            if (cookie != null) 'Cookie': cookie,
+          },
+        ),
+      );
+
+      if (!mounted) return;
+
+      final data = response.data;
+      final message = data is Map && data.containsKey('message')
+          ? data['message']
+          : 'Vote submitted!';
+
+      // Update the star count locally if the server returns it
+      if (data is Map && data.containsKey('stars')) {
+        setState(() {
+          final index = _allSuggestions.indexWhere((s) => s.id == suggestion.id);
+          if (index != -1) {
+            final old = _allSuggestions[index];
+            final updated = Suggestion(
+              id: old.id,
+              courseCode: old.courseCode,
+              courseName: old.courseName,
+              dept: old.dept,
+              intake: old.intake,
+              section: old.section,
+              examType: old.examType,
+              description: old.description,
+              attachmentUrl: old.attachmentUrl,
+              stars: data['stars'] is int ? data['stars'] : old.stars,
+              uploadedBy: old.uploadedBy,
+              createdAt: old.createdAt,
+              updatedAt: old.updatedAt,
+            );
+            _allSuggestions[index] = updated;
+            // Also update filtered list
+            final fIndex = _filteredSuggestions.indexWhere((s) => s.id == suggestion.id);
+            if (fIndex != -1) _filteredSuggestions[fIndex] = updated;
+          }
+        });
+      }
+
+      // Mark as voted & re-sort
+      setState(() {
+        _votedIds.add(suggestion.id);
+        _sortByStars();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text(message.toString())),
+            ],
+          ),
+          backgroundColor: _successColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    } on DioException catch (e) {
+      if (!mounted) return;
+      String errorMsg = 'Failed to vote. Try again.';
+      if (e.response != null && e.response!.data != null) {
+        final data = e.response!.data;
+        if (data is Map && data.containsKey('message')) {
+          errorMsg = data['message'];
+        }
+      }
+      // If already voted, mark it
+      if (errorMsg.toLowerCase().contains('already')) {
+        setState(() => _votedIds.add(suggestion.id));
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text(errorMsg)),
+            ],
+          ),
+          backgroundColor: _voteColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
   }
 
   void _showFaqDialog() {
@@ -231,108 +349,121 @@ class _ExploreScreenState extends State<ExploreScreen> {
         statusBarColor: _primaryColor,
         statusBarIconBrightness: Brightness.light,
       ),
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: _backgroundLight,
-          drawer: const AppDrawer(),
-          body: Builder(
-            builder: (scaffoldContext) => Column(
-              children: [
-                _buildHeader(),
-                _buildSearchRow(scaffoldContext),
-                Expanded(
-                  child: _isLoading
-                      ? _buildShimmerCards()
-                      : _errorMessage != null
-                      ? _buildErrorState()
-                      : _filteredSuggestions.isEmpty
-                      ? _buildEmptyState()
-                      : RefreshIndicator(
-                    onRefresh: _fetchSuggestions,
-                    color: _primaryColor,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 80),
-                      itemCount: _filteredSuggestions.length,
-                      itemBuilder: (context, index) => _buildSuggestionCard(_filteredSuggestions[index]),
-                    ),
+      child: Scaffold(
+        backgroundColor: _backgroundLight,
+        drawer: const AppDrawer(),
+        body: Builder(
+          builder: (scaffoldContext) => Column(
+            children: [
+              _buildHeader(context),
+              _buildSearchRow(scaffoldContext),
+              Expanded(
+                child: _isLoading
+                    ? _buildShimmerCards()
+                    : _errorMessage != null
+                    ? _buildErrorState()
+                    : _filteredSuggestions.isEmpty
+                    ? _buildEmptyState()
+                    : RefreshIndicator(
+                  onRefresh: _fetchSuggestions,
+                  color: _primaryColor,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 80),
+                    itemCount: _filteredSuggestions.length,
+                    itemBuilder: (context, index) => _buildSuggestionCard(_filteredSuggestions[index]),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () async {
-              final loggedIn = await _authService.isLoggedIn();
-              if (!loggedIn) {
-                if (!context.mounted) return;
-                _showLoginDialog();
-                return;
-              }
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            final loggedIn = await _authService.isLoggedIn();
+            if (!loggedIn) {
               if (!context.mounted) return;
-              final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const UploadScreen()));
-              if (result == true && mounted) {
-                setState(() {
-                  _isLoading = true;
-                  _errorMessage = null;
-                });
-                _fetchSuggestions();
-              }
-            },
-            tooltip: 'Upload Suggestion',
-            backgroundColor: _surfaceColor,
-            foregroundColor: _primaryColor,
-            elevation: 2,
-            shape: const CircleBorder(side: BorderSide(color: _primaryColor, width: 2)),
-            child: const Icon(Icons.add, size: 28),
-          ),
+              _showLoginDialog();
+              return;
+            }
+            if (!context.mounted) return;
+            final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const UploadScreen()));
+            if (result == true && mounted) {
+              setState(() {
+                _isLoading = true;
+                _errorMessage = null;
+              });
+              _fetchSuggestions();
+            }
+          },
+          tooltip: 'Upload Suggestion',
+          backgroundColor: _surfaceColor,
+          foregroundColor: _primaryColor,
+          elevation: 4,
+          shape: const CircleBorder(side: BorderSide(color: _primaryColor, width: 2)),
+          child: const Icon(Icons.add, size: 28),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 18,
+        left: 20,
+        right: 20,
+        bottom: 18,
+      ),
       color: _primaryColor,
-      child: const Center(
+      child: Center(
         child: Text(
           'Explore Suggestions',
-          style: TextStyle(
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          style: const TextStyle(
             color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
           ),
         ),
       ),
     );
   }
 
+
   Widget _buildSearchRow(BuildContext scaffoldContext) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bool isSmallScreen = screenWidth < 360;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      padding: EdgeInsets.fromLTRB(isSmallScreen ? 8 : 16, 12, isSmallScreen ? 8 : 16, 16),
       color: _primaryColor,
       child: Row(
         children: [
           IconButton(
             onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
-            icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+            icon: Icon(Icons.menu, color: Colors.white, size: isSmallScreen ? 24 : 28),
+            padding: EdgeInsets.zero,
           ),
           if (!_isLoggedIn)
             GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.login, color: Colors.white, size: 28),
-                  SizedBox(height: 2),
-                  Text('Login', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w500)),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.login, color: Colors.white, size: isSmallScreen ? 24 : 28),
+                    const SizedBox(height: 2),
+                    Text('Login', style: TextStyle(color: Colors.white, fontSize: isSmallScreen ? 9 : 10, fontWeight: FontWeight.w500)),
+                  ],
+                ),
               ),
             ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Container(
               height: 48,
@@ -346,8 +477,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search by course name or code...',
-                  hintStyle: TextStyle(color: _textSecondary, fontSize: 14),
+                  hintText: isSmallScreen ? 'Search...' : 'Search course name or code...',
+                  hintStyle: TextStyle(color: _textSecondary, fontSize: isSmallScreen ? 13 : 14),
                   prefixIcon: Icon(Icons.search, color: _textSecondary, size: 20),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
@@ -387,41 +518,64 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Text(
-                      suggestion.courseCode,
-                      style: TextStyle(color: _primaryColor, fontWeight: FontWeight.w600, fontSize: 13),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Text(
+                        suggestion.courseCode,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      Icon(Icons.star, color: _starColor, size: 20),
-                      const SizedBox(width: 4),
-                      Text('${suggestion.stars}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                      const SizedBox(width: 12),
-                      InkWell(
-                        onTap: () => debugPrint('Vote clicked'),
-                        borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: _voteColor,
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.star, color: _starColor, size: 18),
+                          const SizedBox(width: 4),
+                          Text('${suggestion.stars}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: _votedIds.contains(suggestion.id)
+                                ? null
+                                : () => _handleVote(suggestion),
                             borderRadius: BorderRadius.circular(30),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: _votedIds.contains(suggestion.id)
+                                    ? Colors.grey.shade400
+                                    : _voteColor,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text(
+                                _votedIds.contains(suggestion.id) ? 'Voted' : 'Vote',
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                              ),
+                            ),
                           ),
-                          child: const Text('Vote', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              Text(suggestion.courseName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _textPrimary)),
+              Text(
+                suggestion.courseName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: _textPrimary, height: 1.2),
+              ),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -430,11 +584,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     suggestion.examType,
                     style: TextStyle(
                       color: suggestion.examType.toLowerCase() == 'final' ? _successColor : _voteColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
-                  Text('${suggestion.dept} • Intake ${suggestion.intake} • Sec ${suggestion.section}', style: TextStyle(color: _textSecondary, fontSize: 12)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${suggestion.dept} • Int ${suggestion.intake} • Sec ${suggestion.section}',
+                      textAlign: TextAlign.end,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: _textSecondary, fontSize: 11),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -442,7 +604,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 suggestion.description,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: _textSecondary, fontSize: 14, height: 1.4),
+                style: TextStyle(color: _textSecondary, fontSize: 13, height: 1.4),
               ),
               const SizedBox(height: 16),
               const Divider(height: 1, color: _borderColor),
@@ -450,52 +612,68 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.person_outline, color: _textSecondary, size: 18),
-                      const SizedBox(width: 6),
-                      Text(suggestion.uploadedBy.name, style: TextStyle(color: _textPrimary, fontSize: 13, fontWeight: FontWeight.w500)),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          final loggedIn = await _authService.isLoggedIn();
-                          if (!loggedIn) {
-                            if (!mounted) return;
-                            _showLoginDialog();
-                            return;
-                          }
-                          try {
-                            final uri = Uri.parse(suggestion.attachmentUrl);
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
-                          } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: const Text('Could not open the download link.'), backgroundColor: _errorColor),
-                            );
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: _primaryColor, width: 1.5),
-                            borderRadius: BorderRadius.circular(30),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline, color: _textSecondary, size: 16),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            suggestion.uploadedBy.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: _textPrimary, fontSize: 12, fontWeight: FontWeight.w500),
                           ),
-                          child: Text('Download', style: TextStyle(color: _primaryColor, fontWeight: FontWeight.w600, fontSize: 12)),
                         ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final loggedIn = await _authService.isLoggedIn();
+                              if (!loggedIn) {
+                                if (!mounted) return;
+                                _showLoginDialog();
+                                return;
+                              }
+                              try {
+                                final uri = Uri.parse(suggestion.attachmentUrl);
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: const Text('Could not open the download link.'), backgroundColor: _errorColor),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: _primaryColor, width: 1),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text('Download', style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _primaryColor,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: const Text('View', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: _primaryColor,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: const Text('View', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),

@@ -22,7 +22,14 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   bool _hasError = false;
   int _loadingProgress = 0;
 
-  static const _primaryColor = Color(0xFF42A5F5);
+  // Professional solid color palette (matching other screens)
+  static const _primaryColor = Color(0xFF1E88E5);
+  static const _surfaceColor = Colors.white;
+  static const _backgroundLight = Color(0xFFF8FAFF);
+  static const _textPrimary = Color(0xFF1F2937);
+  static const _textSecondary = Color(0xFF6B7280);
+  static const _errorColor = Color(0xFFEF4444);
+  static const _borderColor = Color(0xFFE5E7EB);
 
   @override
   void initState() {
@@ -31,12 +38,11 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   }
 
   void _initWebView() {
-    // Use Google Docs Viewer to render PDF files in WebView
     final viewerUrl = _getViewerUrl(widget.url);
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.white)
+      ..setBackgroundColor(_surfaceColor)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (_) {
@@ -70,15 +76,11 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       ..loadRequest(Uri.parse(viewerUrl));
   }
 
-  /// Builds a viewer URL depending on the file type.
-  /// For PDFs, uses Google Docs Viewer for inline display.
-  /// For images, loads the URL directly.
   String _getViewerUrl(String url) {
     final lower = url.toLowerCase();
     if (lower.endsWith('.pdf') || lower.contains('.pdf')) {
       return 'https://docs.google.com/gview?embedded=true&url=${Uri.encodeComponent(url)}';
     }
-    // For images and other files, load directly
     return url;
   }
 
@@ -89,9 +91,9 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not open in browser.'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Could not open in browser.'),
+          backgroundColor: _errorColor,
         ),
       );
     }
@@ -100,19 +102,21 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _backgroundLight,
       appBar: AppBar(
         title: Text(
           widget.title,
           style: const TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
           ),
+          overflow: TextOverflow.ellipsis,
         ),
         backgroundColor: _primaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
+        centerTitle: false,
         actions: [
           IconButton(
             onPressed: () => _controller.reload(),
@@ -128,111 +132,143 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       ),
       body: Stack(
         children: [
-          // WebView
+          // WebView (solid background)
           if (!_hasError)
-            WebViewWidget(controller: _controller),
-
-          // Loading indicator
-          if (_isLoading && !_hasError)
-            Column(
-              children: [
-                LinearProgressIndicator(
-                  value: _loadingProgress / 100,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: const AlwaysStoppedAnimation<Color>(_primaryColor),
-                  minHeight: 3,
-                ),
-                const Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(color: _primaryColor),
-                        SizedBox(height: 16),
-                        Text(
-                          'Loading document...',
-                          style: TextStyle(
-                            color: Colors.black54,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            Container(
+              color: _surfaceColor,
+              child: WebViewWidget(controller: _controller),
             ),
 
-          // Error state
+          // Loading indicator (flat, solid colors)
+          if (_isLoading && !_hasError)
+            Container(
+              color: _surfaceColor,
+              child: Column(
+                children: [
+                  LinearProgressIndicator(
+                    value: _loadingProgress / 100,
+                    backgroundColor: _borderColor,
+                    valueColor: const AlwaysStoppedAnimation<Color>(_primaryColor),
+                    minHeight: 3,
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CircularProgressIndicator(
+                            color: _primaryColor,
+                            strokeWidth: 3,
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Loading document...',
+                            style: TextStyle(
+                              color: _textSecondary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (_loadingProgress > 0 && _loadingProgress < 100)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                '$_loadingProgress%',
+                                style: TextStyle(
+                                  color: _textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Error state (modern, helpful)
           if (_hasError)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.redAccent,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Failed to load document',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+            Container(
+              color: _surfaceColor,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 72,
+                        color: _errorColor,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'The document could not be displayed.\nTry opening it in your browser instead.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                        height: 1.4,
+                      const SizedBox(height: 20),
+                      Text(
+                        'Unable to Load Document',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: _textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _isLoading = true;
-                              _hasError = false;
-                            });
-                            _controller.reload();
-                          },
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: _primaryColor,
-                            side: const BorderSide(color: _primaryColor),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                      const SizedBox(height: 10),
+                      Text(
+                        'The document could not be displayed.\nTry opening it in your browser instead.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _isLoading = true;
+                                _hasError = false;
+                              });
+                              _controller.reload();
+                            },
+                            icon: const Icon(Icons.refresh, size: 18),
+                            label: const Text('Retry'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: _primaryColor,
+                              side: const BorderSide(color: _primaryColor, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton.icon(
-                          onPressed: _openInBrowser,
-                          icon: const Icon(Icons.open_in_browser),
-                          label: const Text('Open in Browser'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                          const SizedBox(width: 16),
+                          ElevatedButton.icon(
+                            onPressed: _openInBrowser,
+                            icon: const Icon(Icons.open_in_browser, size: 18),
+                            label: const Text('Open in Browser'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _primaryColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

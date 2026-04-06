@@ -9,7 +9,7 @@ class Myapp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Suggest me app",
+      title: "Suggest Me",
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         textTheme: GoogleFonts.interTextTheme(

@@ -70,11 +70,19 @@ class UploadedBy {
   final String id;
   final String name;
   final String email;
+  final String? studentId;
+  final String? imgUrl;
+  final String? dept;
+  final String? intake;
 
   UploadedBy({
     required this.id,
     required this.name,
     required this.email,
+    this.studentId,
+    this.imgUrl,
+    this.dept,
+    this.intake,
   });
 
   factory UploadedBy.fromJson(Map<String, dynamic> json) {
@@ -82,6 +90,16 @@ class UploadedBy {
       id: json['_id'],
       name: json['name'],
       email: json['email'],
+      studentId: json['student_id'] ?? json['user_id'],
+      // Robust image field parsing with multiple fallbacks
+      imgUrl: json['img_url'] ?? 
+              json['profile_image'] ?? 
+              json['profile_img'] ?? 
+              json['image'] ?? 
+              json['img'] ?? 
+              json['profile_pic'],
+      dept: json['dept'] ?? json['department'],
+      intake: json['intake'],
     );
   }
 
@@ -90,6 +108,10 @@ class UploadedBy {
       '_id': id,
       'name': name,
       'email': email,
+      'student_id': studentId,
+      'img_url': imgUrl,
+      'dept': dept,
+      'intake': intake,
     };
   }
 }
