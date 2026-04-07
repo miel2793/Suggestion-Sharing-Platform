@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/Servies/explore_suggestion_services.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
+import '../../services/explore_suggestion_service.dart';
+import '../../models/explore_suggestion_model.dart';
 
 class LeaderboardUser {
   final String userId;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'Servies/feedback_service.dart';
+import '../../services/feedback_service.dart';
 
 class ReportFeedbackScreen extends StatefulWidget {
   const ReportFeedbackScreen({super.key});

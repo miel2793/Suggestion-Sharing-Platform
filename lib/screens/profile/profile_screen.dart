@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
-import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/EditProfileScreen.dart';
+import '../../services/auth_service.dart';
+import 'edit_profile_screen.dart';
 import 'package:pie_chart/pie_chart.dart';
-import 'user_profile_model.dart';
+import '../../models/user_profile_model.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});

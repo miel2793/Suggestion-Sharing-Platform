@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/login_screen.dart';
-import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/Profile.dart';
-import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/EditProfileScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/SettingsScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/AboutHelpScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/ReportFeedbackScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/LeaderboardScreen.dart';
+import '../services/auth_service.dart';
+import '../screens/auth/login_screen.dart';
+import '../screens/profile/profile_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../screens/explore/settings_screen.dart';
+import '../screens/explore/about_help_screen.dart';
+import '../screens/explore/report_feedback_screen.dart';
+import '../screens/explore/leaderboard_screen.dart';
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});

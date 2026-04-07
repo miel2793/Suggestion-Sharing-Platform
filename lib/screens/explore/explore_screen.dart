@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/UploadScreen.dart';
-import 'AppDrawer.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
-import 'package:suggestion_sharing_platform/Screen/profile%20and%20dashboard/EditProfileScreen.dart';
+import '../../models/explore_suggestion_model.dart';
+import 'upload_screen.dart';
+import '../../widgets/app_drawer.dart';
+import '../../services/auth_service.dart';
+import '../profile/edit_profile_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../log and reg/login_screen.dart';
-import 'Servies/explore_suggestion_services.dart';
-import 'SuggestionDetailScreen.dart';
+import '../auth/login_screen.dart';
+import '../../services/explore_suggestion_service.dart';
+import 'suggestion_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});

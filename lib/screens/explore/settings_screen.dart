@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
-import 'package:suggestion_sharing_platform/Screen/Splash_screen.dart';
+import '../../services/auth_service.dart';
+import '../splash/splash_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

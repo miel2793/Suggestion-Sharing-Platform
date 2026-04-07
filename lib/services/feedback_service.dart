@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:suggestion_sharing_platform/Screen/log and reg/Services/auth_service.dart';
+import 'auth_service.dart';
 
 class FeedbackService {
   final Dio _dio = Dio(

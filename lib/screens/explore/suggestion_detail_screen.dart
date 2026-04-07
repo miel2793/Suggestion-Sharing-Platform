@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/model/explore_suggestion_model.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/Services/auth_service.dart';
-import 'package:suggestion_sharing_platform/Screen/Explore%20and%20account/DocumentViewerScreen.dart';
-import 'package:suggestion_sharing_platform/Screen/log%20and%20reg/login_screen.dart';
+import '../../models/explore_suggestion_model.dart';
+import '../../services/auth_service.dart';
+import 'document_viewer_screen.dart';
+import '../auth/login_screen.dart';
 
 class SuggestionDetailScreen extends StatelessWidget {
   final Suggestion suggestion;

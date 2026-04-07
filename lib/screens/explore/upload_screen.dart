@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'Servies/upload_suggestion_service.dart';
+import '../../services/upload_suggestion_service.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});

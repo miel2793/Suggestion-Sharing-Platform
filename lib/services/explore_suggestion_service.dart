@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../model/explore_suggestion_model.dart';
+import '../models/explore_suggestion_model.dart';
 class SuggestionService {
   final Dio _dio = Dio(
     BaseOptions(
