@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
+import '../core/constants/app_constants.dart';
 import 'auth_service.dart';
 
 class UploadSuggestionService {
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "https://sdp-3-backend.vercel.app/api",
+      baseUrl: AppConstants.baseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
     ),

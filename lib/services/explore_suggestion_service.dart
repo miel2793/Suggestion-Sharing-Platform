@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
+import '../core/constants/app_constants.dart';
 import '../models/explore_suggestion_model.dart';
 class SuggestionService {
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "https://sdp-3-backend.vercel.app/api",
+      baseUrl: AppConstants.baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
     ),

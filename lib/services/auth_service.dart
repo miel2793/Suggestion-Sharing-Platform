@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/constants/app_constants.dart';
+
+
 
 class AuthService {
   static const String _tokenKey = 'auth_cookie';
@@ -17,7 +20,7 @@ class AuthService {
 
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "https://sdp-3-backend.vercel.app/api",
+      baseUrl: AppConstants.baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
     ),
