@@ -11,6 +11,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../auth/login_screen.dart';
 import '../../services/explore_suggestion_service.dart';
 import 'suggestion_detail_screen.dart';
+import '../profile/public_profile_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -29,9 +31,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
   bool _isLoading = true;
   bool _isLoggedIn = false;
   String _userName = '';
-  String _dept = '';
-  String _intake = '';
-  String _section = '';
 
   String? _errorMessage;
   final Set<String> _votedIds = {};
@@ -66,13 +65,53 @@ class _ExploreScreenState extends State<ExploreScreen> {
             _isLoggedIn = true;
             _userName = data['name'] ?? '';
           });
+          // Load persistently stored voted IDs for this account
+          if (data['email'] != null) {
+            _loadVotedIds(data['email']);
+          }
         }
       } catch (_) {
         if (mounted) setState(() => _isLoggedIn = true);
       }
     } else {
-      if (mounted) setState(() => _isLoggedIn = false);
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = false;
+          _votedIds.clear(); // Clear voted state if not logged in
+        });
+      }
     }
+  }
+
+  Future<void> _loadVotedIds(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'voted_ids_$email';
+    final savedIds = prefs.getStringList(key) ?? [];
+    if (mounted) {
+      setState(() {
+        _votedIds.addAll(savedIds);
+      });
+    }
+  }
+
+  Future<void> _saveVotedId(String id) async {
+    final loggedIn = await _authService.isLoggedIn();
+    if (!loggedIn) return;
+
+    try {
+      final data = await _authService.getProfile();
+      final email = data['email'];
+      if (email == null) return;
+
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'voted_ids_$email';
+      final current = prefs.getStringList(key) ?? [];
+
+      if (!current.contains(id)) {
+        current.add(id);
+        await prefs.setStringList(key, current);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -97,27 +136,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     });
   }
 
-  Future<void> _navigateToEditProfile() async {
-    final result = await Navigator.push<Map<String, dynamic>>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => EditProfileScreen(
-          name: _userName,
-          dept: _dept,
-          intake: _intake,
-          section: _section,
-        ),
-      ),
-    );
-    if (result != null && mounted) {
-      setState(() {
-        _userName = result['name'] ?? _userName;
-        _dept = result['dept'] ?? _dept;
-        _intake = result['intake'] ?? _intake;
-        _section = result['section'] ?? _section;
-      });
-    }
-  }
 
   Future<void> _fetchSuggestions() async {
     try {
@@ -239,6 +257,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
         _sortByStars();
       });
 
+      // Save permanently for this account
+      _saveVotedId(suggestion.id);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -263,9 +284,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
           errorMsg = data['message'];
         }
       }
-      // If already voted, mark it
+      // If already voted, mark it and save
       if (errorMsg.toLowerCase().contains('already')) {
         setState(() => _votedIds.add(suggestion.id));
+        _saveVotedId(suggestion.id);
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -285,62 +307,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
   }
 
-  void _showFaqDialog() {
-    final List<Map<String, String>> faqs = [
-      {'question': 'How do I upload a suggestion?', 'answer': 'Tap the upload button on the home screen. Fill in the course details, select your file, and tap Submit.'},
-      {'question': 'How do I search for suggestions?', 'answer': 'Use the search bar at the top. Search by course name or code.'},
-      {'question': 'How do I download an attachment?', 'answer': 'Find the suggestion card and tap "Download". You need to be logged in.'},
-      {'question': 'Do I need an account to browse?', 'answer': 'You can browse without an account, but you need to log in to upload, download, and access your profile.'},
-      {'question': 'How do I edit my profile?', 'answer': 'Open the side menu and tap "Edit Profile".'},
-      {'question': 'How do I change my password?', 'answer': 'Go to Settings from the drawer menu.'},
-    ];
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            Icon(Icons.quiz_outlined, color: _primaryColor),
-            const SizedBox(width: 10),
-            const Text('FAQs', style: TextStyle(fontWeight: FontWeight.w700)),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: faqs.map((faq) => Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Theme(
-                data: ThemeData().copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                  childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                  iconColor: _primaryColor,
-                  collapsedIconColor: _primaryColor,
-                  title: Text(faq['question']!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  children: [
-                    Text(faq['answer']!, style: TextStyle(fontSize: 13, color: _textSecondary, height: 1.4)),
-                  ],
-                ),
-              ),
-            )).toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: _primaryColor)),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -355,8 +321,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
         body: Builder(
           builder: (scaffoldContext) => Column(
             children: [
-              _buildHeader(context),
-              _buildSearchRow(scaffoldContext),
+              _buildHeader(context, scaffoldContext),
+              _buildSearchRow(),
               Expanded(
                 child: _isLoading
                     ? _buildShimmerCards()
@@ -406,94 +372,96 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, BuildContext scaffoldContext) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 18,
-        left: 20,
-        right: 20,
-        bottom: 18,
+        top: MediaQuery.of(context).padding.top + 8,
+        left: 8,
+        right: 16,
+        bottom: 8,
       ),
-      color: _primaryColor,
-      child: Center(
-        child: Text(
-          'Explore Suggestions',
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildSearchRow(BuildContext scaffoldContext) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final bool isSmallScreen = screenWidth < 360;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(isSmallScreen ? 8 : 16, 12, isSmallScreen ? 8 : 16, 16),
       color: _primaryColor,
       child: Row(
         children: [
           IconButton(
             onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
-            icon: Icon(Icons.menu, color: Colors.white, size: isSmallScreen ? 24 : 28),
-            padding: EdgeInsets.zero,
+            icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+          ),
+          const Expanded(
+            child: Text(
+              'Explore Suggestions',
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
+            ),
           ),
           if (!_isLoggedIn)
             GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.login, color: Colors.white, size: isSmallScreen ? 24 : 28),
-                    const SizedBox(height: 2),
-                    Text('Login', style: TextStyle(color: Colors.white, fontSize: isSmallScreen ? 9 : 10, fontWeight: FontWeight.w500)),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: _surfaceColor,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.login, color: Colors.white, size: 24),
+                  Text('Login', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500)),
                 ],
               ),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: isSmallScreen ? 'Search...' : 'Search course name or code...',
-                  hintStyle: TextStyle(color: _textSecondary, fontSize: isSmallScreen ? 13 : 14),
-                  prefixIcon: Icon(Icons.search, color: _textSecondary, size: 20),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                    icon: Icon(Icons.clear, color: _textSecondary, size: 18),
-                    onPressed: () => _searchController.clear(),
-                  )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                style: const TextStyle(fontSize: 15),
-              ),
-            ),
-          ),
+            )
+          else
+            const SizedBox(width: 40), // Balance the menu icon on the left
         ],
+      ),
+    );
+  }
+
+
+  Widget _buildSearchRow() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bool isSmallScreen = screenWidth < 360;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+      color: _primaryColor,
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: _surfaceColor,
+          borderRadius: BorderRadius.circular(50), // Infinity / Pill design
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: isSmallScreen ? 'Search...' : 'Search course name or code...',
+            hintStyle: TextStyle(color: _textSecondary, fontSize: isSmallScreen ? 13 : 14),
+            prefixIcon: const Padding(
+              padding: EdgeInsets.only(left: 8),
+              child: Icon(Icons.search, color: _textSecondary, size: 22),
+            ),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+              icon: const Icon(Icons.clear, color: _textSecondary, size: 18),
+              onPressed: () => _searchController.clear(),
+            )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          style: const TextStyle(fontSize: 15),
+        ),
       ),
     );
   }
@@ -613,18 +581,31 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Row(
-                      children: [
-                        Icon(Icons.person_outline, color: _textSecondary, size: 16),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            suggestion.uploadedBy.name,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: _textPrimary, fontSize: 12, fontWeight: FontWeight.w500),
-                          ),
+                    child: InkWell(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PublicProfileScreen(uploader: suggestion.uploadedBy),
                         ),
-                      ],
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_outline, color: _primaryColor, size: 16),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              suggestion.uploadedBy.name,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _primaryColor, 
+                                fontSize: 13, 
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),

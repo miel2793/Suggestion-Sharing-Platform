@@ -7,6 +7,7 @@ import '../screens/explore/settings_screen.dart';
 import '../screens/explore/about_help_screen.dart';
 import '../screens/explore/report_feedback_screen.dart';
 import '../screens/explore/leaderboard_screen.dart';
+import '../screens/explore/faq_screen.dart';
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
@@ -107,25 +108,13 @@ class _AppDrawerState extends State<AppDrawer> {
                     title: 'Home',
                     onTap: () => Navigator.pop(context),
                   ),
-                  _buildMenuItem(
-                    icon: Icons.emoji_events_rounded,
-                    title: 'Leaderboard',
-                    subtitle: 'Top contributors ranking',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
-                      );
-                    },
-                  ),
+
                   if (_isLoggedIn) ...[
                     _buildMenuItem(
                       icon: Icons.person_rounded,
                       title: 'My Profile',
                       subtitle: 'View your profile & uploads',
                       onTap: () {
-                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const Profile()),
@@ -137,7 +126,6 @@ class _AppDrawerState extends State<AppDrawer> {
                       title: 'Edit Profile',
                       subtitle: 'Update your information',
                       onTap: () {
-                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -156,28 +144,39 @@ class _AppDrawerState extends State<AppDrawer> {
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Divider(height: 24, thickness: 0.5, color: _borderColor),
                   ),
+                  _buildSectionLabel('F & Q'),
+                  _buildMenuItem(
+                    icon: Icons.quiz_rounded,
+                    title: 'FAQs',
+                    subtitle: 'Find quick answers',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FaqScreen()),
+                      );
+                    },
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.contact_support_rounded,
+                    title: 'Ask a Question',
+                    subtitle: 'Get help or report issues',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ReportFeedbackScreen()),
+                      );
+                    },
+                  ),
+
                   _buildSectionLabel('SUPPORT & INFO'),
                   _buildMenuItem(
                     icon: Icons.settings_rounded,
                     title: 'Settings',
                     subtitle: 'Password & preferences',
                     onTap: () {
-                      Navigator.pop(context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                      );
-                    },
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.support_agent_rounded,
-                    title: 'Support',
-                    subtitle: 'Report bugs & send feedback',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ReportFeedbackScreen()),
                       );
                     },
                   ),
@@ -186,7 +185,6 @@ class _AppDrawerState extends State<AppDrawer> {
                     title: 'About',
                     subtitle: 'App info & contact',
                     onTap: () {
-                      Navigator.pop(context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const AboutHelpScreen()),
