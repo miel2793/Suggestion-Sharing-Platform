@@ -91,22 +91,31 @@ class UploadedBy {
     this.role,
   });
 
-  factory UploadedBy.fromJson(Map<String, dynamic> json) {
+  factory UploadedBy.fromJson(dynamic json) {
+    if (json is String) {
+      return UploadedBy(
+        id: json,
+        name: 'User $json',
+        email: '',
+      );
+    }
+    
+    final Map<String, dynamic> data = json is Map<String, dynamic> ? json : {};
+    
     return UploadedBy(
-      id: json['_id'] ?? '',
-      name: json['name'] ?? 'Unknown',
-      email: json['email'] ?? '',
-      studentId: json['student_id'] ?? json['user_id'] ?? '',
-      // Robust image field parsing with multiple fallbacks
-      imgUrl: json['img_url'] ?? 
-              json['profile_image'] ?? 
-              json['profile_img'] ?? 
-              json['image'] ?? 
-              json['img'] ?? 
-              json['profile_pic'],
-      dept: json['dept'] ?? json['department'],
-      intake: json['intake'],
-      role: json['role'],
+      id: data['_id'] ?? '',
+      name: data['name'] ?? 'Unknown',
+      email: data['email'] ?? '',
+      studentId: data['student_id'] ?? data['user_id'] ?? '',
+      imgUrl: data['img_url'] ?? 
+              data['profile_image'] ?? 
+              data['profile_img'] ?? 
+              data['image'] ?? 
+              data['img'] ?? 
+              data['profile_pic'],
+      dept: data['dept'] ?? data['department'],
+      intake: data['intake'],
+      role: data['role'],
     );
   }
 
