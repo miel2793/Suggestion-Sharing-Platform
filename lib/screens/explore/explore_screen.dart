@@ -6,12 +6,12 @@ import '../../models/explore_suggestion_model.dart';
 import 'upload_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../services/auth_service.dart';
-import '../profile/edit_profile_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../auth/login_screen.dart';
 import '../../services/explore_suggestion_service.dart';
 import 'suggestion_detail_screen.dart';
 import '../profile/public_profile_screen.dart';
+import 'leaderboard_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -31,7 +31,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   bool _isLoading = true;
   bool _isLoggedIn = false;
   String _userName = '';
-
+  
   String? _errorMessage;
   final Set<String> _votedIds = {};
 
@@ -240,6 +240,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               attachmentUrl: old.attachmentUrl,
               stars: data['stars'] is int ? data['stars'] : old.stars,
               uploadedBy: old.uploadedBy,
+              status: old.status,
               createdAt: old.createdAt,
               updatedAt: old.updatedAt,
             );
@@ -402,15 +403,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
           ),
+          // Always show Leaderboard as it is a public feature
+          IconButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen())),
+            icon: const Icon(Icons.emoji_events_outlined, color: Colors.white),
+            tooltip: 'Leaderboard',
+          ),
           if (!_isLoggedIn)
             GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.login, color: Colors.white, size: 24),
-                  Text('Login', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500)),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.login, color: Colors.white, size: 24),
+                    const Text('Login', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500)),
+                  ],
+                ),
               ),
             )
           else
@@ -436,7 +446,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           borderRadius: BorderRadius.circular(50), // Infinity / Pill design
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -475,7 +485,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           color: _surfaceColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
           ],
         ),
         child: Padding(
@@ -490,7 +500,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: _primaryColor.withValues(alpha: 0.1),
+                        color: _primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: Text(
@@ -742,7 +752,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.search_off, size: 72, color: _textSecondary.withValues(alpha: 0.6)),
+          Icon(Icons.search_off, size: 72, color: _textSecondary.withOpacity(0.6)),
           const SizedBox(height: 16),
           Text('No suggestions found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: _textSecondary)),
           const SizedBox(height: 8),

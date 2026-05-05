@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../core/constants/app_constants.dart';
 import '../models/explore_suggestion_model.dart';
@@ -15,7 +16,13 @@ class SuggestionService {
       final response = await _dio.get("/suggestions");
 
       if (response.statusCode == 200) {
-        List<dynamic> data = response.data;
+        final dynamic rawData = response.data;
+        List<dynamic> data;
+        if (rawData is String) {
+          data = jsonDecode(rawData);
+        } else {
+          data = rawData;
+        }
         return data
             .map((json) => Suggestion.fromJson(json))
             .toList();

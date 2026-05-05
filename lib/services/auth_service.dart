@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_constants.dart';
@@ -17,6 +18,38 @@ class AuthService {
   
   /// Synchronous access to cached login status
   static bool? get cachedIsLoggedIn => _isLoggedInCached;
+  
+  /// Checks if the cached user role has moderation privileges
+  static bool get canAccessModeration {
+    if (_profileCache == null) return false;
+    final role = (_profileCache!['role'] ?? '').toString().toLowerCase();
+    return ['admin', 'teacher', 'moderator', 'mod', 'modarator'].contains(role);
+  }
+  
+  /// Checks if the user has moderation access, ensuring profile is loaded
+  Future<bool> hasModerationAccess() async {
+    if (_profileCache == null) {
+      try {
+        await getProfile();
+      } catch (_) {
+        return false;
+      }
+    }
+    return canAccessModeration;
+  }
+  
+  /// Robustly converts dynamic data to a Map<String, dynamic>
+  Map<String, dynamic> _safeMap(dynamic data) {
+    if (data == null) return {};
+    if (data is Map) return Map<String, dynamic>.from(data);
+    if (data is String && data.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(data);
+        if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      } catch (_) {}
+    }
+    return {};
+  }
 
   final Dio _dio = Dio(
     BaseOptions(
@@ -51,7 +84,7 @@ class AuthService {
         }
         
         _isLoggedInCached = true;
-        return Map<String, dynamic>.from(response.data);
+        return _safeMap(response.data);
       } else {
         throw Exception("Login failed. Please try again.");
       }
@@ -93,7 +126,7 @@ class AuthService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return Map<String, dynamic>.from(response.data);
+        return _safeMap(response.data);
       } else {
         throw Exception("Registration failed. Please try again.");
       }
@@ -135,7 +168,7 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        _profileCache = Map<String, dynamic>.from(response.data);
+        _profileCache = _safeMap(response.data);
         return _profileCache!;
       } else {
         throw Exception("Failed to load profile.");
@@ -187,7 +220,7 @@ class AuthService {
           _profileCache!['intake'] = intake;
           _profileCache!['section'] = section;
         }
-        return Map<String, dynamic>.from(response.data);
+        return _safeMap(response.data);
       } else {
         throw Exception("Failed to update profile.");
       }
@@ -227,7 +260,7 @@ class AuthService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return Map<String, dynamic>.from(response.data);
+        return _safeMap(response.data);
       } else {
         throw Exception("Failed to change password.");
       }

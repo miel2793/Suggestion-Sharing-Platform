@@ -42,7 +42,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   static const _textPrimary = Color(0xFF1F2937);
   static const _textSecondary = Color(0xFF6B7280);
   static const _starColor = Color(0xFFFBBF24);
-  static const _accentColor = Color(0xFF6366F1);
 
   @override
   void initState() {

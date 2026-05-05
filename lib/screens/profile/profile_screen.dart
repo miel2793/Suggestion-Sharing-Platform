@@ -21,9 +21,7 @@ class _ProfileState extends State<Profile> {
   static const _primaryColor = Color(0xFF1E88E5);
   static const _surfaceColor = Colors.white;
   static const _backgroundLight = Color(0xFFF8FAFF);
-  static const _textPrimary = Color(0xFF1F2937);
   static const _textSecondary = Color(0xFF6B7280);
-  static const _borderColor = Color(0xFFE5E7EB);
   static const _errorColor = Color(0xFFEF4444);
   static const _successColor = Color(0xFF10B981);
   static const _warningColor = Color(0xFFF59E0B);
@@ -204,6 +202,27 @@ class _ProfileState extends State<Profile> {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _primaryColor),
           ),
+          if (p.role.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: _getRoleColor(p.role).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _getRoleColor(p.role).withOpacity(0.5)),
+              ),
+              child: Text(
+                p.role.toUpperCase(),
+                style: TextStyle(
+                  color: _getRoleColor(p.role),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 4),
           Text(
             p.email,
             textAlign: TextAlign.center,
@@ -379,6 +398,20 @@ class _ProfileState extends State<Profile> {
         ],
       ),
     );
+  }
+
+  Color _getRoleColor(String role) {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        return const Color(0xFFEF4444); // Red
+      case 'teacher':
+        return const Color(0xFF1E88E5); // Blue
+      case 'moderator':
+      case 'modarator':
+        return const Color(0xFF8B5CF6); // Purple
+      default:
+        return _textSecondary;
+    }
   }
 }
 

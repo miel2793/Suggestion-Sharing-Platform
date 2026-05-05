@@ -10,6 +10,7 @@ class Suggestion {
   final String attachmentUrl;
   final int stars;
   final UploadedBy uploadedBy;
+  final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -25,25 +26,27 @@ class Suggestion {
     required this.attachmentUrl,
     required this.stars,
     required this.uploadedBy,
+    required this.status,
     required this.createdAt,
     required this.updatedAt,
   });
 
   factory Suggestion.fromJson(Map<String, dynamic> json) {
     return Suggestion(
-      id: json['_id'],
-      courseCode: json['course_code'],
-      courseName: json['course_name'],
-      dept: json['dept'],
-      intake: json['intake'],
-      section: json['section'],
-      examType: json['exam_type'],
+      id: json['_id'] ?? '',
+      courseCode: json['course_code'] ?? '',
+      courseName: json['course_name'] ?? '',
+      dept: json['dept'] ?? '',
+      intake: json['intake'] ?? '',
+      section: json['section'] ?? '',
+      examType: json['exam_type'] ?? '',
       description: json['description'] ?? '',
-      attachmentUrl: json['attachment_url'],
+      attachmentUrl: json['attachment_url'] ?? '',
       stars: json['stars'] ?? 0,
-      uploadedBy: UploadedBy.fromJson(json['uploaded_by']),
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      uploadedBy: UploadedBy.fromJson(json['uploaded_by'] ?? {}),
+      status: json['status'] ?? 'approved',
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) ?? DateTime.now() : DateTime.now(),
+      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) ?? DateTime.now() : DateTime.now(),
     );
   }
 
@@ -59,6 +62,7 @@ class Suggestion {
       'description': description,
       'attachment_url': attachmentUrl,
       'stars': stars,
+      'status': status,
       'uploaded_by': uploadedBy.toJson(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -74,6 +78,7 @@ class UploadedBy {
   final String? imgUrl;
   final String? dept;
   final String? intake;
+  final String? role;
 
   UploadedBy({
     required this.id,
@@ -83,14 +88,15 @@ class UploadedBy {
     this.imgUrl,
     this.dept,
     this.intake,
+    this.role,
   });
 
   factory UploadedBy.fromJson(Map<String, dynamic> json) {
     return UploadedBy(
-      id: json['_id'],
-      name: json['name'],
-      email: json['email'],
-      studentId: json['student_id'] ?? json['user_id'],
+      id: json['_id'] ?? '',
+      name: json['name'] ?? 'Unknown',
+      email: json['email'] ?? '',
+      studentId: json['student_id'] ?? json['user_id'] ?? '',
       // Robust image field parsing with multiple fallbacks
       imgUrl: json['img_url'] ?? 
               json['profile_image'] ?? 
@@ -100,6 +106,7 @@ class UploadedBy {
               json['profile_pic'],
       dept: json['dept'] ?? json['department'],
       intake: json['intake'],
+      role: json['role'],
     );
   }
 
@@ -112,6 +119,7 @@ class UploadedBy {
       'img_url': imgUrl,
       'dept': dept,
       'intake': intake,
+      'role': role,
     };
   }
 }

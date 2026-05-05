@@ -6,8 +6,9 @@ import '../screens/profile/edit_profile_screen.dart';
 import '../screens/explore/settings_screen.dart';
 import '../screens/explore/about_help_screen.dart';
 import '../screens/explore/report_feedback_screen.dart';
-import '../screens/explore/leaderboard_screen.dart';
 import '../screens/explore/faq_screen.dart';
+import '../screens/admin/moderation_screen.dart';
+import '../screens/explore/leaderboard_screen.dart';
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
@@ -25,6 +26,7 @@ class _AppDrawerState extends State<AppDrawer> {
   late String _userIntake;
   late String _userSection;
   late String _userImgUrl;
+  late String _userRole;
 
   // Professional solid color palette (matching other screens)
   static const _primaryColor = Color(0xFF1E88E5);
@@ -55,6 +57,7 @@ class _AppDrawerState extends State<AppDrawer> {
       _userIntake = cachedProfile['intake'] ?? '';
       _userSection = cachedProfile['section'] ?? '';
       _userImgUrl = cachedProfile['img_url'] ?? '';
+      _userRole = cachedProfile['role'] ?? '';
     } else {
       _userName = 'Guest User';
       _userEmail = '';
@@ -62,6 +65,7 @@ class _AppDrawerState extends State<AppDrawer> {
       _userIntake = '';
       _userSection = '';
       _userImgUrl = '';
+      _userRole = '';
     }
   }
 
@@ -79,6 +83,7 @@ class _AppDrawerState extends State<AppDrawer> {
             _userIntake = profile['intake'] ?? '';
             _userSection = profile['section'] ?? '';
             _userImgUrl = profile['img_url'] ?? '';
+            _userRole = profile['role'] ?? '';
           });
         }
       } catch (_) {
@@ -107,6 +112,17 @@ class _AppDrawerState extends State<AppDrawer> {
                     icon: Icons.home_rounded,
                     title: 'Home',
                     onTap: () => Navigator.pop(context),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.emoji_events_rounded,
+                    title: 'Leaderboard',
+                    subtitle: 'Top contributors ranking',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                      );
+                    },
                   ),
 
                   if (_isLoggedIn) ...[
@@ -139,6 +155,24 @@ class _AppDrawerState extends State<AppDrawer> {
                         );
                       },
                     ),
+                    if (AuthService.canAccessModeration) ...[
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Divider(height: 24, thickness: 0.5, color: _borderColor),
+                      ),
+                      _buildSectionLabel('ADMINISTRATION'),
+                      _buildMenuItem(
+                        icon: Icons.admin_panel_settings_rounded,
+                        title: 'Moderation',
+                        subtitle: 'Manage suggestions & status',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const ModerationScreen()),
+                          );
+                        },
+                      ),
+                    ],
                   ],
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
@@ -294,6 +328,26 @@ class _AppDrawerState extends State<AppDrawer> {
               letterSpacing: 0.2,
             ),
           ),
+          if (_isLoggedIn && _userRole.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.3)),
+              ),
+              child: Text(
+                _userRole.toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 6),
           if (_isLoggedIn && _userEmail.isNotEmpty)
             Text(

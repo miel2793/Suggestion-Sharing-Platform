@@ -35,7 +35,7 @@ class SuggestionDetailScreen extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: const Border(left: BorderSide(color: _primaryColor, width: 5)),
-                boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 3))],
+                boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 3))],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +46,7 @@ class SuggestionDetailScreen extends StatelessWidget {
                       Flexible(
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(color: _primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(color: _primaryColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                           child: Text(s.courseCode, overflow: TextOverflow.ellipsis, style: const TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
                         ),
                       ),
@@ -98,7 +98,7 @@ class SuggestionDetailScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      CircleAvatar(radius: 18, backgroundColor: _primaryColor.withValues(alpha: 0.1), child: const Icon(Icons.person, color: _primaryColor, size: 20)),
+                      CircleAvatar(radius: 18, backgroundColor: _primaryColor.withOpacity(0.1), child: const Icon(Icons.person, color: _primaryColor, size: 20)),
                       const SizedBox(width: 10),
                       Flexible(
                         child: Column(
@@ -307,7 +307,7 @@ class SuggestionDetailScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
+                    color: const Color(0xFF7C3AED).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

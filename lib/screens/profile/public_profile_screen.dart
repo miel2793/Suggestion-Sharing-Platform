@@ -164,6 +164,26 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             u.name,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _primaryColor),
           ),
+          if (u.role != null && u.role!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: _getRoleColor(u.role!).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _getRoleColor(u.role!).withOpacity(0.5)),
+              ),
+              child: Text(
+                u.role!.toUpperCase(),
+                style: TextStyle(
+                  color: _getRoleColor(u.role!),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 4),
           Text(u.email, style: const TextStyle(color: _textSecondary, fontSize: 14)),
           const SizedBox(height: 20),
@@ -257,5 +277,19 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         ],
       ),
     );
+  }
+
+  Color _getRoleColor(String role) {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        return const Color(0xFFEF4444);
+      case 'teacher':
+        return const Color(0xFF1E88E5);
+      case 'moderator':
+      case 'modarator':
+        return const Color(0xFF8B5CF6);
+      default:
+        return _textSecondary;
+    }
   }
 }
